@@ -35,7 +35,7 @@ function initClient() {
         authorizeButton.onclick = handleAuthClick;
         signoutButton.onclick = handleSignoutClick;
     }, function(error) {
-        $("#appLoginContent").append(JSON.stringify(error, null, 2));
+        loginContent.innerHTML = JSON.stringify(error, null, 2);
     });
 }
 
