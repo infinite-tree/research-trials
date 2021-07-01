@@ -1,7 +1,9 @@
 // 
 // Info specific functions
 // See utils.js for more
-// 
+//
+var rfid_active = false;
+
 async function inputHandler(e) {
     if (e.key === "Enter") {
         // tag entered. 
@@ -11,8 +13,17 @@ async function inputHandler(e) {
 }
 
 async function rfidInputHandler(rfid_tag) {
+    if (rfid_active) {
+        // block multiple reads
+        return;
+    }
+    rfid_active = true;
     input.value = rfid_tag;
+    input.parentElement.classList.add("is-dirty");
+
+    console.log(`Searching for tag: ${rfid_tag}`);
     await loadPlantByTag(rfid_tag);
+    rfid_active = false;
 }
 
 function loadByLocation() {

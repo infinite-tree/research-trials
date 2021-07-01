@@ -1,3 +1,5 @@
+var rfid_active = false;
+
 async function inputHandler(e) {
     if (e.key === "Enter") {
         // tag entered. 
@@ -8,9 +10,17 @@ async function inputHandler(e) {
 }
 
 async function rfidInputHandler(rfid_tag) {
+    if (rfid_active) {
+        // block multiple reads
+        return;
+    }
+    rfid_active = true;
     input.value = rfid_tag;
+    input.parentElement.classList.add("is-dirty");
+
     await assignTagToCurrentPlant(rfid_tag);
     await loadNextUntaggedPlant();
+    rfid_active = false;
 }
 
 function newTagAppInit() {
