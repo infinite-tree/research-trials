@@ -32,6 +32,6 @@ var CURRENT_ROW_TO_TAG = "search!C4";
 var CURRENT_ROW_TO_TAG_RANGE = "search!C4:M4";
 var LAST_PLANT_ID = "search!B5";
 
-// HID RFID reader
-var VENDOR_ID = "1a86";
-var PRODUCT_ID = "e010"
+// TW1900 HID RFID reader
+var VENDOR_ID = 6790;
+var PRODUCT_ID = 57360;
