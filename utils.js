@@ -8,6 +8,8 @@ var plant_id_chip = document.getElementById('plant-id-span');
 var plant_info = document.getElementById('plant-info-span');
 var info_spinner = document.getElementById('info-spinner');
 
+var rfid_callback = null;
+
 
 // 
 // Error functions
@@ -228,4 +230,61 @@ async function loadNextPlant(e) {
     // Convert plant_id to int and query
     var next_id = parseInt(current_plant_id) + 1;
     await loadPlantById(next_id.toString());
+}
+
+
+
+// 
+// Webhid
+// 
+function hidReportHandler(event) {
+    event.preventDefault();
+    const { data, device, reportId } = event;
+    console.log(data);
+
+    var rfid_tag = "";
+    for (let x=19 ; x< 31; x++) {
+        var code = data.getUint8(x);
+        rfid_tag += code.toString(16).toUpperCase().padStart(2, "0");
+    }
+    console.log(`RFID Tag: ${rfid_tag}`);
+    
+    // populate the input field and trigger the action.
+    if (rfid_callback !== null) {
+        rfid_callback(rfid_tag);
+    }
+}
+
+async function handleReaderConnect(e) {
+    e.preventDefault();
+    if (!"hid" in navigator) {
+        console.log("no hid device support");
+        return;
+    }
+
+    // Prompt user to enable hid reader
+    const device_list = await navigator.hid.getDevices();
+    console.log(device_list)
+
+    let device = device_list.find(d => d.vendorId === VENDOR_ID && d.productId === PRODUCT_ID);
+
+    if (!device) {
+        // this returns an array now
+        let devices = await navigator.hid.requestDevice({
+            filters: [{ VENDOR_ID, PRODUCT_ID }],
+        });
+        // console.log("devices:",devices);
+        device = devices[0];
+        if( !device ) return;
+    }
+
+    if (!device.opened) {
+        await device.open();
+    }
+    device.addEventListener("inputreport", hidReportHandler);
+}
+
+function initHidRFID(callback) {
+    rfid_callback = callback;
+    document.getElementById('reader-connect').addEventListener('click', handleReaderConnect);
 }

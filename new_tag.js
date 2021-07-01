@@ -7,6 +7,12 @@ async function inputHandler(e) {
     }
 }
 
+async function rfidInputHandler(rfid_tag) {
+    input.value = rfid_tag;
+    await assignTagToCurrentPlant(rfid_tag);
+    await loadNextUntaggedPlant();
+}
+
 function newTagAppInit() {
     // set focus to the text field and get the keys from it
     input.focus();
@@ -19,6 +25,9 @@ function newTagAppInit() {
     // Arrow buttons
     document.getElementById('info-left').addEventListener('click', loadPrevPlant);
     document.getElementById('info-right').addEventListener('click', loadNextPlant);
+
+    // enable HID based RFID reader if possible
+    initHidRFID(rfidInputHandler);
 
     // Load initial tag
     loadNextUntaggedPlant();

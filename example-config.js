@@ -31,3 +31,7 @@ var ID_SEARCH_RESULT_RANGE = "";
 var CURRENT_ROW_TO_TAG = "";
 var CURRENT_ROW_TO_TAG_RANGE = "";
 var LAST_PLANT_ID = "";
+
+// HID RFID reader
+var VENDOR_ID = "";
+var PRODUCT_ID = "";

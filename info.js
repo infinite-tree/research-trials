@@ -10,6 +10,11 @@ async function inputHandler(e) {
     }
 }
 
+async function rfidInputHandler(rfid_tag) {
+    input.value = rfid_tag;
+    await loadPlantByTag(rfid_tag);
+}
+
 function loadByLocation() {
     var params = new URLSearchParams(window.location.search);
     if (params.has('tag')) {
@@ -31,6 +36,9 @@ function infoAppInit() {
     // Arrow buttons
     document.getElementById('info-left').addEventListener('click', loadPrevPlant);
     document.getElementById('info-right').addEventListener('click', loadNextPlant);
+
+    // enable HID based RFID reader if possible
+    initHidRFID(rfidInputHandler);
 
     // Load info if present
     loadByLocation();
