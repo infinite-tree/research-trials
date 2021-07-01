@@ -87,6 +87,7 @@ async function loadPlant(search_value, search_by_tag) {
         });
         info_spinner.classList.remove("is-active");
         input.value = "";
+        input.parentElement.classList.remove("is-dirty");
         input.focus();
         input.select();
 
@@ -99,8 +100,9 @@ async function loadPlant(search_value, search_by_tag) {
             } else {
                 showError("Unknown plant id");
             }
+            return;
         }
-        // console.log(result.values[0]);
+        console.log(result.values);
 
         current_plant_values = result.values[0];
         plant_info.innerHTML = plantText(result.values[0]);
@@ -240,14 +242,16 @@ async function loadNextPlant(e) {
 function hidReportHandler(event) {
     event.preventDefault();
     const { data, device, reportId } = event;
-    console.log(data);
+    // console.log(data);
 
     var rfid_tag = "";
+    //  I ddin't figure out the entire protocol of the TW1900 UHF reader, 
+    //  but it seems like the proper tag id is consitently in these 12 bytes:
     for (let x=19 ; x< 31; x++) {
         var code = data.getUint8(x);
         rfid_tag += code.toString(16).toUpperCase().padStart(2, "0");
     }
-    console.log(`RFID Tag: ${rfid_tag}`);
+    // console.log(`RFID Tag: ${rfid_tag}`);
     
     // populate the input field and trigger the action.
     if (rfid_callback !== null) {
@@ -264,9 +268,9 @@ async function handleReaderConnect(e) {
 
     // Prompt user to enable hid reader
     const device_list = await navigator.hid.getDevices();
-    console.log(device_list)
+    // console.log(device_list)
 
-    let device = device_list.find(d => d.vendorId === VENDOR_ID && d.productId === PRODUCT_ID);
+    let device = device_list.find(d => d.vendorId == VENDOR_ID && d.productId == PRODUCT_ID && d.collections.length > 0);
 
     if (!device) {
         // this returns an array now
@@ -274,14 +278,26 @@ async function handleReaderConnect(e) {
             filters: [{ VENDOR_ID, PRODUCT_ID }],
         });
         // console.log("devices:",devices);
-        device = devices[0];
-        if( !device ) return;
+        device = devices.find(d => d.vendorId == VENDOR_ID && d.productId == PRODUCT_ID && d.collections.length > 0);
+        if( !device ) {
+            showError("No compatible reader found");
+            return;
+        }
     }
 
     if (!device.opened) {
-        await device.open();
+        try {
+            await device.open();
+        } catch (e) {
+            showError(e.toString());
+            return;
+        }
     }
     device.addEventListener("inputreport", hidReportHandler);
+
+    // hacky: close the drawer
+    var layout = document.querySelector('.mdl-layout');
+    layout.MaterialLayout.toggleDrawer();
 }
 
 function initHidRFID(callback) {
