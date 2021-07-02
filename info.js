@@ -26,15 +26,6 @@ async function rfidInputHandler(rfid_tag) {
     rfid_active = false;
 }
 
-function loadByLocation() {
-    var params = new URLSearchParams(window.location.search);
-    if (params.has('tag')) {
-        loadPlantByTag(params.get('tag'));
-    } else if (params.has('id')) {
-        loadPlantById(params.get('id'));
-    }
-}
-
 function infoAppInit() {
     // set focus to the text field and get the keys from it
     input.focus();

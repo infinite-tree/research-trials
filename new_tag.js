@@ -39,8 +39,11 @@ function newTagAppInit() {
     // enable HID based RFID reader if possible
     initHidRFID(rfidInputHandler);
 
-    // Load initial tag
-    loadNextUntaggedPlant();
+    // Load info if present
+    if (!loadByLocation()) {
+        // Load initial tag
+        loadNextUntaggedPlant();
+    }
 }
 
 
