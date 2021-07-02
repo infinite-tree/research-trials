@@ -18,8 +18,10 @@ async function rfidInputHandler(rfid_tag) {
     input.value = rfid_tag;
     input.parentElement.classList.add("is-dirty");
 
-    await assignTagToCurrentPlant(rfid_tag);
-    await loadNextUntaggedPlant();
+    var res = await assignTagToCurrentPlant(rfid_tag);
+    if (res) {
+        await loadNextUntaggedPlant();
+    }
     rfid_active = false;
 }
 

@@ -184,7 +184,7 @@ async function assignTagToCurrentPlant(rfid_tag) {
         var result = resp.result;
         if (result.updatedCells < 1) {
             showError("Failed to validate tag");
-            return;
+            return false;
         }
 
 
@@ -197,12 +197,12 @@ async function assignTagToCurrentPlant(rfid_tag) {
         if (numRows == 1) {
             var plant_id = result.values[0][2];
             showError(`RFID Tag is already assigned to plant ${plant_id}`);
-            return;
+            return false;
         }
 
     } catch (e) {
         showError(e.toString());
-        return;
+        return false;
     }
 
 
@@ -229,7 +229,7 @@ async function assignTagToCurrentPlant(rfid_tag) {
 
         if (resp.result.totalUpdatedCells < 2) {
             showError("Failed to update plant");
-            return;
+            return false;
         }
 
         // Success!
@@ -238,7 +238,9 @@ async function assignTagToCurrentPlant(rfid_tag) {
 
     } catch (e) {
         showError(e.toString());
+        return false;
     }
+    return true;
 }
 
 
