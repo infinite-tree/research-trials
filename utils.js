@@ -171,6 +171,42 @@ async function assignTagToCurrentPlant(rfid_tag) {
     var plant_row_range = INVENTORY_SHEET + "!" + RFID_COLUMN + row_number;
     var next_row = (parseInt(row_number) + 1).toString();
 
+    try {
+        // make sure the rfid tag does not already exist
+        //  This prevents duplicate writes when moving quickly
+        var resp = await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: INVENTORY_SPREADSHEET_ID,
+            range: RFID_SEARCH_FIELD_RANGE,
+            valueInputOption: "USER_ENTERED",
+            resource: {values: [[rfid_tag]]}
+        });
+
+        var result = resp.result;
+        if (result.updatedCells < 1) {
+            showError("Failed to validate tag");
+            return;
+        }
+
+
+        resp = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: INVENTORY_SPREADSHEET_ID,
+            range: RFID_SEARCH_RESULT_RANGE
+        });
+        result = resp.result;
+        var numRows = result.values ? result.values.length : 0;
+        if (numRows == 1) {
+            var plant_id = result.values[0][2];
+            showError(`RFID Tag is already assigned to plant ${plant_id}`);
+            return;
+        }
+
+    } catch (e) {
+        showError(e.toString());
+        return;
+    }
+
+
+    // Write the tag
     var body = {
         data: [
             {
@@ -234,6 +270,17 @@ async function loadNextPlant(e) {
     await loadPlantById(next_id.toString());
 }
 
+function loadByLocation() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.has('tag')) {
+        loadPlantByTag(params.get('tag'));
+        return true;
+    } else if (params.has('id')) {
+        loadPlantById(params.get('id'));
+        return true;
+    }
+    return false;
+}
 
 
 // 
