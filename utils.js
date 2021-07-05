@@ -110,6 +110,12 @@ async function loadPlant(search_value, search_by_tag) {
         plant_id_chip.innerHTML = result.values[0][2];
         current_plant_id = result.values[0][2];
 
+        // rfid is the 11th column
+        if (result.values[0][10] !== "") {
+            input.value = result.values[0][10];
+            input.parentElement.classList.add("is-dirty");
+        }
+
     } catch (e) {
         info_spinner.classList.remove("is-active");
         showError(e.toString());
