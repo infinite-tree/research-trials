@@ -39,7 +39,11 @@ function initErrorDialog() {
 
 function plantText(plant_row) {
     // Name is the second column, Size 8th, location 9th
-    return"<br>" + plant_row[1] + "<br><br><b>" + plant_row[7] + " in " + plant_row[8] + "</b>";
+    var desc ="<br>" + plant_row[1] + "<br><br><b>" + plant_row[7] + " in " + plant_row[8] + "</b>";
+    if (plant_row[5]) {
+        desc += "<br>(" + plant_row[5] + ")";
+    }
+    return desc;
 }
 
 async function loadPlant(search_value, search_by_tag) {
