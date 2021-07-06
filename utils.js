@@ -111,7 +111,7 @@ async function loadPlant(search_value, search_by_tag) {
         current_plant_id = result.values[0][2];
 
         // rfid is the 11th column
-        if (result.values[0][10] !== "") {
+        if (result.values[0].length > 10 && result.values[0][10] !== "") {
             input.value = result.values[0][10];
             input.parentElement.classList.add("is-dirty");
         }
