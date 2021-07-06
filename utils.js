@@ -110,6 +110,12 @@ async function loadPlant(search_value, search_by_tag) {
         plant_id_chip.innerHTML = result.values[0][2];
         current_plant_id = result.values[0][2];
 
+        // rfid is the 11th column
+        if (result.values[0][10] !== "") {
+            input.value = result.values[0][10];
+            input.parentElement.classList.add("is-dirty");
+        }
+
     } catch (e) {
         info_spinner.classList.remove("is-active");
         showError(e.toString());
@@ -276,9 +282,11 @@ function loadByLocation() {
     var params = new URLSearchParams(window.location.search);
     if (params.has('tag')) {
         loadPlantByTag(params.get('tag'));
+        window.history.replaceState(null, null, window.location.pathname);
         return true;
     } else if (params.has('id')) {
         loadPlantById(params.get('id'));
+        window.history.replaceState(null, null, window.location.pathname);
         return true;
     }
     return false;
@@ -330,6 +338,7 @@ async function handleReaderConnect(e) {
         device = devices.find(d => d.vendorId == VENDOR_ID && d.productId == PRODUCT_ID && d.collections.length > 0);
         if( !device ) {
             showError("No compatible reader found");
+            document.getElementById("rfid-status").style.color="red";
             return;
         }
     }
@@ -337,8 +346,10 @@ async function handleReaderConnect(e) {
     if (!device.opened) {
         try {
             await device.open();
+            document.getElementById("rfid-status").style.color="green";
         } catch (e) {
             showError(e.toString());
+            document.getElementById("rfid-status").style.color="red";
             return;
         }
     }
