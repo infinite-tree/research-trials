@@ -320,13 +320,7 @@ function hidReportHandler(event) {
     }
 }
 
-async function handleReaderConnect(e) {
-    e.preventDefault();
-    if (!"hid" in navigator) {
-        console.log("no hid device support");
-        return;
-    }
-
+async function openHidRFID() {
     // Prompt user to enable hid reader
     const device_list = await navigator.hid.getDevices();
     // console.log(device_list)
@@ -358,13 +352,34 @@ async function handleReaderConnect(e) {
         }
     }
     device.addEventListener("inputreport", hidReportHandler);
+}
+
+async function handleReaderConnectButton(e) {
+    e.preventDefault();
+    if (!"hid" in navigator) {
+        console.log("no hid device support");
+        return;
+    }
+
+    await openHidRFID();
 
     // hacky: close the drawer
     var layout = document.querySelector('.mdl-layout');
     layout.MaterialLayout.toggleDrawer();
 }
 
+async function handleHidConnect(e) {
+    await openHidRFID();
+}
+
+async function handleHidDisconnect(e) {
+    document.getElementById("rfid-status").style.color="red";
+}
+
 function initHidRFID(callback) {
     rfid_callback = callback;
-    document.getElementById('reader-connect').addEventListener('click', handleReaderConnect);
+    
+    document.getElementById('reader-connect').addEventListener('click', handleReaderConnectButton);
+    navigator.hid.addEventListener("connect", handleHidConnect);
+    navigator.hid.addEventListener("disconnect", handleHidDisconnect);
 }
