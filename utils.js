@@ -36,7 +36,6 @@ function initErrorDialog() {
 // 
 // Plant query and loading functions
 // 
-
 function plantText(plant_row) {
     // Name is the second column, Size 8th, location 9th
     var desc ="<br>" + plant_row[1] + "<br><br><b>" + plant_row[7] + " in " + plant_row[8] + "</b>";
@@ -46,7 +45,21 @@ function plantText(plant_row) {
     return desc;
 }
 
-async function loadPlant(search_value, search_by_tag) {
+function displayCurrentPlant() {
+    plant_info.innerHTML = plantText(current_plant_values);
+    // Plant Id is the 3nd column
+    plant_id_chip.innerHTML = current_plant_values[2];
+    current_plant_id = current_plant_values[2];
+
+    // rfid is the 11th column
+    if (current_plant_values.length > 10 && current_plant_values[10] !== "") {
+        input.value = current_plant_values[10];
+        input.parentElement.classList.add("is-dirty");
+    }
+}
+
+
+async function loadPlant(search_value, search_type) {
     // search for tag
     plant_id_chip.innerHTML = "Searching";
     info_spinner.classList.add("is-active");
@@ -62,11 +75,20 @@ async function loadPlant(search_value, search_by_tag) {
         values: [[search_value]]
     };
 
-    var search_range = RFID_SEARCH_FIELD_RANGE;
-    var result_range = RFID_SEARCH_RESULT_RANGE;
-    if (!search_by_tag) {
+    var search_range;
+    var result_range;
+    if (search_type === "ID") {
         search_range = ID_SEARCH_FIELD_RANGE;
         result_range = ID_SEARCH_RESULT_RANGE;
+    } else if (search_type === "RFID") {
+        search_range = RFID_SEARCH_FIELD_RANGE;
+        result_range = RFID_SEARCH_RESULT_RANGE;
+    } else if (search_type === "ROW") {
+        search_range = ROW_SEARCH_FIELD_RANGE;
+        result_range = ROW_SEARCH_RESULT_RANGE;
+    } else {
+        showError(`Internal Error: unknown search type: ${search_type}`);
+        return;
     }
 
     try {
@@ -109,16 +131,7 @@ async function loadPlant(search_value, search_by_tag) {
         console.log(result.values);
 
         current_plant_values = result.values[0];
-        plant_info.innerHTML = plantText(result.values[0]);
-        // Plant Id is the 3nd column
-        plant_id_chip.innerHTML = result.values[0][2];
-        current_plant_id = result.values[0][2];
-
-        // rfid is the 11th column
-        if (result.values[0].length > 10 && result.values[0][10] !== "") {
-            input.value = result.values[0][10];
-            input.parentElement.classList.add("is-dirty");
-        }
+        displayCurrentPlant();
 
     } catch (e) {
         info_spinner.classList.remove("is-active");
@@ -127,11 +140,15 @@ async function loadPlant(search_value, search_by_tag) {
 }
 
 function loadPlantByTag(rfid_tag) {
-    return loadPlant(rfid_tag, true);
+    return loadPlant(rfid_tag, "RFID");
 }
 
 function loadPlantById(plant_id) {
-    return loadPlant(plant_id, false);
+    return loadPlant(plant_id, "ID");
+}
+
+function loadPlantByRow(plant_row) {
+    return loadPlant(plant_row, "ROW");
 }
 
 async function loadNextUntaggedPlant() {
@@ -155,11 +172,10 @@ async function loadNextUntaggedPlant() {
             return;
         }
 
-        console.log(result.values);
         // Load the first untagged (not the last tagged)
-        var plant_id = result.values[0][2];
-        console.log(plant_id);
-        await loadPlantById(plant_id);
+        current_plant_id = result.values[0][2];
+        current_plant_values = result.values[0];
+        displayCurrentPlant();
         
     } catch (e) {
         info_spinner.classList.remove("is-active");
@@ -207,6 +223,7 @@ async function assignTagToCurrentPlant(rfid_tag) {
         if (numRows == 1) {
             var plant_id = result.values[0][2];
             showError(`RFID Tag is already assigned to plant ${plant_id}`);
+            plant_info.innerHTML = "";
             return false;
         }
 
@@ -263,12 +280,12 @@ async function loadPrevPlant(e) {
         return;
     }
 
-    // Convert plant_id to int and query
-    var prev_id = parseInt(current_plant_id) - 1;
-    if (prev_id < 0) {
-        prev_id = 0;
+    // Convert plant row to int and query
+    var prev_row = parseInt(current_plant_values[0]) - 1;
+    if (prev_row < 2) {
+        prev_row = 2;
     }
-    await loadPlantById(prev_id.toString());
+    await loadPlantByRow(prev_row.toString());
 }
 
 async function loadNextPlant(e) {
@@ -277,9 +294,9 @@ async function loadNextPlant(e) {
         return;
     }
 
-    // Convert plant_id to int and query
-    var next_id = parseInt(current_plant_id) + 1;
-    await loadPlantById(next_id.toString());
+    // Convert plant row to int and query
+    var next_row = parseInt(current_plant_values[0]) + 1;
+    await loadPlantByRow(next_row.toString());
 }
 
 function loadByLocation() {
@@ -378,7 +395,7 @@ async function handleHidDisconnect(e) {
 
 function initHidRFID(callback) {
     rfid_callback = callback;
-    
+
     document.getElementById('reader-connect').addEventListener('click', handleReaderConnectButton);
     navigator.hid.addEventListener("connect", handleHidConnect);
     navigator.hid.addEventListener("disconnect", handleHidDisconnect);
