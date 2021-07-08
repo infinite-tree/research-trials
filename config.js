@@ -28,9 +28,12 @@ var RFID_SEARCH_RESULT_RANGE = "search!C2:M2";
 var ID_SEARCH_FIELD_RANGE = "search!B3";
 var ID_SEARCH_RESULT_RANGE = "search!C3:M3";
 
-var CURRENT_ROW_TO_TAG = "search!C4";
-var CURRENT_ROW_TO_TAG_RANGE = "search!C4:M4";
-var LAST_PLANT_ID = "search!B5";
+var ROW_SEARCH_FIELD_RANGE = "search!C4";
+var ROW_SEARCH_RESULT_RANGE = "search!C4:M4";
+
+var CURRENT_ROW_TO_TAG = "search!C5";
+var CURRENT_ROW_TO_TAG_RANGE = "search!C5:M5";
+var LAST_PLANT_ID = "search!B6";
 
 // TW1900 HID RFID reader
 var VENDOR_ID = 6790;
