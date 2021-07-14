@@ -121,10 +121,12 @@ async function loadPlant(search_value, search_type) {
         result = resp.result;
         var numRows = result.values ? result.values.length : 0;
         if (numRows != 1) {
-            if (search_by_tag) {
+            if (search_type  === "ID") {
                 showError("Unknown Tag");
-            } else {
+            } else if (search_type === "RFID") {
                 showError("Unknown plant id");
+            } else {
+                showError("Unknown row");
             }
             return;
         }
