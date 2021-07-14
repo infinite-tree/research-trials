@@ -392,11 +392,6 @@ async function openHidRFID() {
 
 async function handleReaderConnectButton(e) {
     e.preventDefault();
-    if (!"hid" in navigator) {
-        console.log("no hid device support");
-        return;
-    }
-
     await openHidRFID();
 
     // hacky: close the drawer
@@ -413,6 +408,11 @@ async function handleHidDisconnect(e) {
 }
 
 function initHidRFID(callback) {
+    if (!"hid" in navigator) {
+        console.log("no hid device support");
+        return;
+    }
+
     rfid_callback = callback;
 
     document.getElementById('reader-connect').addEventListener('click', handleReaderConnectButton);
