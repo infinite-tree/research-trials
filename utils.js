@@ -408,14 +408,14 @@ async function handleHidDisconnect(e) {
 }
 
 function initHidRFID(callback) {
-    if (!"hid" in navigator) {
+    if ("hid" in navigator) {
+        rfid_callback = callback;
+        document.getElementById('reader-connect').addEventListener('click', handleReaderConnectButton);
+        navigator.hid.addEventListener("connect", handleHidConnect);
+        navigator.hid.addEventListener("disconnect", handleHidDisconnect);
+
+    } else {
         console.log("no hid device support");
         return;
     }
-
-    rfid_callback = callback;
-
-    document.getElementById('reader-connect').addEventListener('click', handleReaderConnectButton);
-    navigator.hid.addEventListener("connect", handleHidConnect);
-    navigator.hid.addEventListener("disconnect", handleHidDisconnect);
 }
