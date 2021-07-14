@@ -37,7 +37,11 @@ function initClient() {
     }, function(error) {
         loginContent.innerHTML = JSON.stringify(error, null, 2);
     }).catch(error => {
-        loginContent.innerHTML = error.toString();
+        try {
+            loginContent.innerHTML = error.stack;
+        } catch (e) {
+            loginContent.innerHTML = error.toString();
+        }
     });
 }
 
