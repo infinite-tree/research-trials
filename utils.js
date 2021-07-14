@@ -121,10 +121,12 @@ async function loadPlant(search_value, search_type) {
         result = resp.result;
         var numRows = result.values ? result.values.length : 0;
         if (numRows != 1) {
-            if (search_by_tag) {
+            if (search_type  === "ID") {
                 showError("Unknown Tag");
-            } else {
+            } else if (search_type === "RFID") {
                 showError("Unknown plant id");
+            } else {
+                showError("Unknown row");
             }
             return;
         }
@@ -297,6 +299,23 @@ async function loadNextPlant(e) {
     // Convert plant row to int and query
     var next_row = parseInt(current_plant_values[0]) + 1;
     await loadPlantByRow(next_row.toString());
+}
+
+async function arrowKeyHandler(e) {
+    if (e.which == 37) {
+        // Left arrow, load prev
+        e.preventDefault();
+        return loadPrevPlant(e);
+    } else if (e.which == 39) {
+        // Right arrow, load next
+        e.preventDefault();
+        return loadNextPlant(e);
+    }
+}
+
+function initArrowNav() {
+    document.getElementById('info-left').addEventListener('click', loadPrevPlant);
+    document.getElementById('info-right').addEventListener('click', loadNextPlant);
 }
 
 function loadByLocation() {

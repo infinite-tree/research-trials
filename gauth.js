@@ -36,6 +36,8 @@ function initClient() {
         signoutButton.onclick = handleSignoutClick;
     }, function(error) {
         loginContent.innerHTML = JSON.stringify(error, null, 2);
+    }).catch(error => {
+        loginContent.innerHTML = error.toString();
     });
 }
 

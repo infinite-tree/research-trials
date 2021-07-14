@@ -9,6 +9,8 @@ async function inputHandler(e) {
         // tag entered. 
         e.preventDefault();
         await loadPlantByTag(input.value);
+    } else {
+        await arrowKeyHandler(e);
     }
 }
 
@@ -36,8 +38,7 @@ function infoAppInit() {
     initErrorDialog();
 
     // Arrow buttons
-    document.getElementById('info-left').addEventListener('click', loadPrevPlant);
-    document.getElementById('info-right').addEventListener('click', loadNextPlant);
+    initArrowNav();
 
     // enable HID based RFID reader if possible
     initHidRFID(rfidInputHandler);
