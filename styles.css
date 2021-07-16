@@ -17,6 +17,18 @@ a img{
   padding: 10px;
 }
 
+.static-grid {
+  width:100%;
+  z-index:2;
+  height:220px;
+  position: fixed;
+  background-color: #FFFFFF; 
+}
+
+.scroll-grid {
+  position: relative;
+  top:220px;
+}
 
 .mdl-card {
   min-height: 100px;
@@ -75,4 +87,25 @@ a img{
 .mdl-dialog__content {
   padding: 20px 24px 24px 24px;
   color: rgba(0,0,0, 0.54);
+}
+
+table {
+  width: 100%;
+}
+
+tr.no-hover:hover {
+  background-color: #FFFFFF !important;
+}
+
+.bold {
+  font-weight: bold;
+  font-size: large;
+}
+
+.note-actions {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  transform: rotate(0deg);
+  z-index: 2;
 }
