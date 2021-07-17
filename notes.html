@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.grey-orange.min.css" />
     <link rel="stylesheet" href="getmdl-select/getmdl-select.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/css/index.css">
     <link rel="stylesheet" href="/styles.css" />
 
     <!-- Favicon -->
@@ -82,6 +83,7 @@
                     <div class="mdl-textfield mdl-js-textfield">
                       <input class="mdl-textfield__input" type="text" id="new-study-input">
                       <label class="mdl-textfield__label" for="new-study-input">Study Name</label>
+                      <div id="virtual-keyboard" class="simple-keyboard"></div>
                     </div>
                 </form>
             </div>
@@ -167,7 +169,7 @@
           <!-- NOTES -->
           <div class="mdl-grid scroll-grid">
             <div class="mdl-cell mdl-cell--12-col">
-              <span id="notes-status">No Notes yet...</span>
+              <span id="study-notes-status">No Notes yet...</span>
             </div>
 
             <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
@@ -368,6 +370,7 @@
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="/getmdl-select/getmdl-select.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/index.js"></script>
     <script src="/config.js"></script>
     <script src="/gauth.js"></script>
     <script src="/utils.js"></script>
