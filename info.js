@@ -8,7 +8,20 @@ async function inputHandler(e) {
     if (e.key === "Enter") {
         // tag entered. 
         e.preventDefault();
-        await loadPlantByTag(input.value);
+        console.log("enter.", input.value);
+
+        var rfid = input.value;
+        input.value = "";
+        
+        if (rfid_active) {
+            // block multiple reads
+            return;
+        }
+        
+        rfid_active = true;
+        await loadPlantByTag(rfid);
+        rfid_active = false;
+
     } else {
         await arrowKeyHandler(e);
     }
