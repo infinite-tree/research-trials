@@ -20,6 +20,72 @@ var new_study_input = document.getElementById("new-study-input");
 var new_study_dialog = document.getElementById("new-study-dialog");
 var new_study_spinner = document.getElementById("new-study-spinner");
 
+var note_cards = document.getElementById("note-cards");
+
+
+function addStudiesToSelector(studies) {
+    // Studies: [ [pos, name],...]
+    for (let x=0; x < studies.length; x++) {
+        study_info = studies[x];
+        // console.log(study_info);
+
+        var li = document.createElement('li');
+        pos = study_info[0];
+        li.textContent = study_info[1];
+        li.classList.add("mdl-menu__item");
+        li.setAttribute('data-val', pos.toString());
+        study_list.appendChild(li);
+    }
+
+    // Refresh the select drop down
+    getmdlSelect.init(".getmdl-select");
+}
+
+function htmlToElement(html) {
+    var template = document.createElement('template');
+    html = html.trim(); // Never return a text node of whitespace as the result
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function loadNote(note_row) {
+    // TODO: add share link
+
+    // FIXME: images will be 2048 x 1152 or 1152 x 2048. Set card size appropriately
+    // [0] Timestamp, [1] plant_id, [2] note, [3] photo link [4] photo id
+    if (note_row.length > 4 && note_row[4].length > 0) {
+        var card_html = `
+        <div class="note-card photo-note-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+            <div class="mdl-card__title mdl-card--expand">
+                <img class="note-img" src="https://drive.google.com/uc?export=view&id=${note_row[4]}">
+            </div>
+            <div class="mdl-card__supporting-text">
+                ${note_row[2]}
+            </div>
+            <div class="mdl-card__actions mdl-card--border">
+                <b>${note_row[1]}</b> <br> ${note_row[0]}
+            </div>
+        </div>`;
+
+    } else {
+        var card_html = `
+        <div class="note-card text-note-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+            <div class="mdl-card__supporting-text">
+                ${note_row[2]}
+            </div>
+            <div class="mdl-card__actions mdl-card--border">
+                <b>${note_row[1]}</b> <br> ${note_row[0]}
+            </div>
+        </div>
+        `;
+    }
+    note_cards.appendChild(htmlToElement(card_html));
+    
+    // Scroll to the end
+    window.scrollTo(0,document.body.scrollHeight);
+}
+
+
 async function inputHandler(e) {
     if (virtual_keyboard_div !== null && virtual_keyboard_div.classList.contains("show-keyboard")) {
         // virtual keyboard is on-screen do nothing
@@ -50,11 +116,15 @@ async function studySelectionHandler(e) {
     // 1. fetch the spreadsheet data
     // 2. load the images and their notes into cards and chips
     // 3. scroll to the bottom (with each card)
-    current_study_row = study_row_input.value;
+    current_study_row = parseInt(study_row_input.value);
     var study_name = study_name_input.value;
 
+    // Newly created studies are auto-selected and the element needs to 
+    // be marked dirty
+    study_name_input.parentElement.classList.add("is-dirty");
+
     // Studies: [0] name, [1] sheet. [2] folder
-    var study_sheet_id = study_rows[current_study_row.value.toInt()][1];
+    var study_sheet_id = study_rows[current_study_row][1];
 
     try {
         // 1. fetch the notes
@@ -72,24 +142,34 @@ async function studySelectionHandler(e) {
         }
 
         // 2. load images and create cards
-        // FIXME: implement
-
+        note_cards.innerHTML = "";
+        for(const row of result.values) {
+            loadNote(row);
+        }
 
     } catch (e) {
         showError(e);
+        return;
     }
 }
+
 
 async function newStudyHandler(e) {
     var new_study_input = document.getElementById("new-study-input");
         
     new_study_spinner.classList.add("is-active");
-    await createStudy(new_study_input.value);
+    var res = await createStudy(new_study_input.value);
     new_study_spinner.classList.remove("is-active");
-
     new_study_dialog.close();
-    // FIXME: select the new study
+
+    // select the new study
+    if (res.length > 0) {
+        study_row_input.value = res[0];
+        study_name_input.value = res[1];
+        studySelectionHandler(null);
+    }
 }
+
 
 async function initStudySelector() {
     loadActiveStudies();
@@ -110,6 +190,7 @@ async function initStudySelector() {
     });
 }
 
+
 async function loadActiveStudies() {
     // get studies from spreadsheet
     try {
@@ -128,20 +209,11 @@ async function loadActiveStudies() {
 
         // [0] study name, [1] study spreadsheet, [3] study folder
         study_rows = result.values;
-        // for (const row of study_rows) {
-        for (let x=0; x < study_rows.length; x++) {
-            row = study_rows[x];
-            // console.log(row);
-
-            li = document.createElement('li');
-            li.textContent = row[0]
-            li.classList.add("mdl-menu__item");
-            li.setAttribute('data-val', x.toString());
-            study_list.appendChild(li);
+        var studies = [];
+        for(const row of study_rows) {
+            studies.push([studies.length, row[0]]);
         }
-
-        // Refresh the select drop down
-        getmdlSelect.init(".getmdl-select");
+        addStudiesToSelector(studies);
         
     } catch (e) {
         showError(e.toString());
@@ -154,8 +226,85 @@ async function createStudy(study_name) {
     // 3. Add the study to the studies sheet
     // 4. update the selection menu
 
+
+    // 1. create folder
+    try {
+        var resp = await gapi.client.drive.files.create({
+            "resource": {
+                "name": study_name,
+                "mimeType": "application/vnd.google-apps.folder",
+                "parents": [STUDIES_PARENT_FOLDER_ID]
+            },
+            "fields": "id"
+        });
+
+        var study_folder_id = resp.result.id;
+        console.log("fodler id: ", study_folder_id);
+    } catch (e) {
+        showError(e.toString());
+        return [];
+    }
+
+    // 2. copy the template into the folder
+    try {
+        resp = await gapi.client.drive.files.copy({
+            "fileId": STUDY_TEMPLATE_SPREADHSEET_ID,
+            "supportsAllDrives": true,
+            "fields": "id",
+            "resource": {
+                "parents": [study_folder_id],
+                "name": `${study_name}: Research Trial Notes`
+            }
+        });
+        
+        var notes_sheet_id = resp.result.id;
+        console.log("notes_spreadsheet: ", notes_sheet_id);
+
+    } catch (e) {
+        if (e.result.error.message) {
+            showError(e.result.error.message);
+        } else {
+            showError(e.toString());
+        }
+
+        // TODO: undo step 1
+        return [];
+    }
+
+    // 3. Add the study to the studies sheet
+    try {
+        var resp = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: STUDIES_SPREADTSHEET_ID,
+            range: STUDIES_ACTIVE_RANGE
+        });
+
+        var result = resp.result;
+        var numRows = result.values ? result.values.length : 0;
+        // [0] study name, [1] study spreadsheet, [3] study folder
+
+        var resp = await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: STUDIES_SPREADTSHEET_ID,
+            range: STUDIES_ACTIVE_RANGE,
+            insertDataOption: "INSERT_ROWS",
+            valueInputOption: "USER_ENTERED",
+            resource: {values: [[study_name, notes_sheet_id, study_folder_id]]}
+        });
+
+        study_rows.push([study_name, notes_sheet_id, study_folder_id]);
+        addStudiesToSelector([[numRows, study_name]]);
+
+    } catch (e) {
+        showError(e.toString());
+        // TODO: Undo steps 1 and 2
+        return [];
+    }
+    
+    return [numRows, study_name];
 }
 
+// 
+// virtual Keyboard handling
+// 
 function handleShift() {
     let currentLayout = virtual_keyboard.options.layoutName;
     let shiftToggle = currentLayout === "default" ? "shift" : "default";
@@ -271,6 +420,10 @@ function notesAppInit() {
 
     // Load studies
     initStudySelector();
+
+    // Init action buttons (camera and mic)
+    initCamera();
+    // initMic();
 
     // Load info if present
     loadByLocation();

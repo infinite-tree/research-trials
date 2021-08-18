@@ -22,6 +22,21 @@
     <link rel="manifest" href="/favicon/site.webmanifest">
   </head>
   <body>
+
+    <!-- Camera Overlay -->
+    <div id="camera-screen" class="full-screen" hidden>
+      <div id="webcam-container" class="webcam-container">
+        <video id="video-feed" autoplay playsinline width="1052"></video>
+        <canvas id="canvas" class="d-none"></canvas>
+        <div class="flash"></div>
+      </div>
+      <div id="cameraControls" class="cameraControls">
+        <button id="exit-camera" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"><i class="material-icons">undo</i></button>
+        <button id="take-photo" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"><i class="material-icons">camera_alt</i></button>
+      </div>
+    </div>
+
+
     <div class="mdl-layout mdl-js-layout">
       <div class="research-trials-header mdl-layout__header">
         <div class="mdl-layout__header-row">
@@ -105,7 +120,7 @@
 
           <!-- Floating action buttons -->
           <div class="note-actions">
-            <button id="microphone-btn" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
+            <button id="new-photo-btn" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
               <i class="material-icons">photo_camera</i>
             </button>
             <button id="microphone-btn" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored">
@@ -167,201 +182,12 @@
 
 
           <!-- NOTES -->
-          <div class="mdl-grid scroll-grid">
+          <div class="mdl-grid scroll-grid" id="note-cards">
             <div class="mdl-cell mdl-cell--12-col">
               <span id="study-notes-status">No Notes yet...</span>
             </div>
 
             <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-            
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
-
-            <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-              <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">3/24/2021</h2>
-              </div>
-              <div class="mdl-card__supporting-text">
-                  <span class="mdl-chip">
-                      <span id="plant-id-span" class="mdl-chip__text">200</span>
-                  </span>
-                  <br>
-                  <span id="plant-info-span">plant info</span>
-                  <br>
-              </div>
-              <div class="mdl-card__actions mdl-card--border">
-                  <button id="card-close" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                      <i class="material-icons">close</i>
-                  </button>
-              </div>
-            </div>
             
           </div>
         </div>
@@ -374,6 +200,7 @@
     <script src="/config.js"></script>
     <script src="/gauth.js"></script>
     <script src="/utils.js"></script>
+    <script src="/camera.js"></script>
     <script src="/rfid.js"></script>
     <script src="/notes.js"></script>
   </body>
