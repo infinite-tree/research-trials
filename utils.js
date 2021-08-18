@@ -53,7 +53,7 @@ function displayCurrentPlant() {
 
     // rfid is the 11th column
     if (current_plant_values.length > 10 && current_plant_values[10] !== "") {
-        input.value = current_plant_values[10];
+        // input.value = current_plant_values[10];
         input.parentElement.classList.add("is-dirty");
     }
 }
