@@ -23,6 +23,11 @@ async function inputHandler(e) {
         rfid_active = false;
 
     } else {
+        if (rfid_active) {
+            // block additional data while searching
+            e.preventDefault();
+            return;
+        }
         await arrowKeyHandler(e);
     }
 }
