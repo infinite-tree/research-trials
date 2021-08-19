@@ -29,6 +29,13 @@ function initErrorDialog() {
     }
     error_dialog.querySelector('button:not([disabled])').addEventListener('click', function() {
         error_dialog.close();
+        try {
+            // Assuming there is an input, move focus back to it after the error dialog is closed.
+            input.focus();
+            input.select();    
+        } catch (e) {
+            return;
+        }
     });
 }
 
