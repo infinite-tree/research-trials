@@ -19,9 +19,9 @@ async function inputHandler(e) {
         }
         
         rfid_active = true;
+        // debounce rfid input. Max rate is 1 request per sec
+        setTimeout(function(){ rfid_active = false; }, 1000);
         await loadPlantByTag(rfid);
-        rfid_active = false;
-
     } else {
         if (rfid_active) {
             // block additional data while searching
