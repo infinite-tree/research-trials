@@ -1,7 +1,11 @@
 var camera_screen = document.getElementById("camera-screen");
 var video = document.getElementById("video-feed");
-var camera_canvas = document.getElementById("canvas");
+var camera_stream = null;
+var camera_canvas = document.getElementById("camera-canvas");
 
+
+// User supplied
+var photo_handler_callback = null;
 
 // 
 // Camera functions
@@ -17,12 +21,16 @@ async function startCamera(width, height) {
     };
 
     try {
-        var stream = await navigator.mediaDevices.getUserMedia(camera_constraints);
-        video.src = window.URL.createObjectURL(stream);
+        camera_stream = await navigator.mediaDevices.getUserMedia(camera_constraints);
+        video.srcObject = camera_stream;
+        camera_stream.getTracks().forEach(track=> {
+            console.log(track.getSettings());
+        });
         video.play();
         video.onplay = function() {
-            // unhide the camaer UI
+            // unhide the camera UI
             camera_screen.hidden = false;
+            // FIXME: set width and height to screen size
         };
     }
     catch (e) {
@@ -33,24 +41,51 @@ async function startCamera(width, height) {
 };
 
 function stopCamera() {
-    // TODO: implement
+    video.pause();
+    camera_stream.getTracks().forEach(track => {
+        track.stop();
+    });
+}
 
+async function startCameraHandler(e) {
+    e.preventDefault();
+
+    startCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
+}
+
+function exitCameraHandler(e) {
+    e.preventDefault();
+
+    stopCamera();
     camera_screen.hidden = true;
 }
 
 function takePhotoHandler(e) {
-    // FIXME: implement
+    e.preventDefault();
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0,0);
+    
+    stopCamera();
+    var img_url = canvas.toDataURL('image/png');
+    photo_handler_callback(img_url);
 }
 
-function initCamera() {
-    if(!navigator.getMedia){
+function initCamera(photo_callback) {
+    photo_handler_callback = photo_callback;
+
+    // Support desktop and mobile
+    if(!navigator.getUserMedia){
         showError("Your browser doesn't support camera access");
         return;
     }
 
     camera_screen.hidden = true;
-    document.getElementById("new-photo-btn").addEventListener('click', startCamera);
-    document.getElementById("exit-camera").addEventListener('click', stopCamera);
+    document.getElementById("new-photo-btn").addEventListener('click', startCameraHandler);
+    document.getElementById("exit-camera").addEventListener('click', exitCameraHandler);
     document.getElementById("take-photo").addEventListener('click', takePhotoHandler);
 }
 

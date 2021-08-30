@@ -120,6 +120,11 @@ tr.no-hover:hover {
   z-index: 2;
 }
 
+.note-subtitle {
+  margin-left: auto;
+  margin-right: 0;
+}
+
 .simple-keyboard {
   position: fixed;
   bottom: 0px;
@@ -142,6 +147,13 @@ tr.no-hover:hover {
   height: 100%;
   z-index: 5;
 }
+.white {
+  background-color: #FFFFFF;
+}
+
+.wide-btn {
+  width: 50%;
+}
 
 #exit-camera {
   position: fixed;
@@ -156,4 +168,18 @@ tr.no-hover:hover {
   bottom: 32px;
   transform: translateX(-50%);
   z-index: 6;
+}
+
+#new-note-container {
+  display: flex;
+  justify-content: center;
+  justify-items: center;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.full-width {
+  display: inline-block;
+  white-space: nowrap;
+  width: 100%;
 }

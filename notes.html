@@ -24,15 +24,37 @@
   <body>
 
     <!-- Camera Overlay -->
-    <div id="camera-screen" class="full-screen" hidden>
+    <div id="camera-screen" class="full-screen white" hidden>
       <div id="webcam-container" class="webcam-container">
-        <video id="video-feed" autoplay playsinline width="1052"></video>
-        <canvas id="canvas" class="d-none"></canvas>
-        <div class="flash"></div>
+        <video id="video-feed" autoplay playsinline class="full-screen"></video>
+        <!-- <canvas id="camera-canvas" class="d-none full-screen"></canvas> -->
       </div>
       <div id="cameraControls" class="cameraControls">
         <button id="exit-camera" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"><i class="material-icons">undo</i></button>
         <button id="take-photo" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"><i class="material-icons">camera_alt</i></button>
+      </div>
+    </div>
+
+    <!-- New Note Card -->
+    <div id="new-note-container" class="full-screen white" hidden>
+      <div class="note-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+        <div class="mdl-card__title">
+          <div id="new-note-id" class="mdl-card__title-text"></div>
+          <div id="new-note-time" class="mdl-card__subtitle-text note-subtitle"></div>
+        </div>
+        <div class="mdl-card__media">
+          <img id="new-note-img" width="100%">
+        </div>
+        <div id="new-note-text" class="mdl-card__supporting-text"></div>
+        <div id="new-note-tags" class="mdl-card__actions mdl-card--border"></div>
+      </div>
+      <div class="full-width">
+        <button id="new-note-cancel-btn" class="wide-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+          CANCEL
+        </button>
+        <button id="new-note-save-btn" class="wide-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+          SAVE
+        </button>
       </div>
     </div>
 

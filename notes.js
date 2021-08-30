@@ -11,6 +11,7 @@ var scanner_buffer = "";
 
 var current_study_row = -1;
 var study_rows = [];
+var study_tags = [];
 
 var study_name_input = document.getElementById("study-name");
 var study_row_input = document.getElementById("study-row");
@@ -21,6 +22,7 @@ var new_study_dialog = document.getElementById("new-study-dialog");
 var new_study_spinner = document.getElementById("new-study-spinner");
 
 var note_cards = document.getElementById("note-cards");
+var new_note_screen = document.getElementById("new-note-container");
 
 
 function addStudiesToSelector(studies) {
@@ -52,29 +54,58 @@ function loadNote(note_row) {
     // TODO: add share link
 
     // FIXME: images will be 2048 x 1152 or 1152 x 2048. Set card size appropriately
-    // [0] Timestamp, [1] plant_id, [2] note, [3] photo link [4] photo id
-    if (note_row.length > 4 && note_row[4].length > 0) {
+    // [0] Timestamp, [1] plant_id, [2] tags, [3] note, [4] photo link [5] photo id
+    var timestamp = note_row[0];
+    var plant_id = note_row[1];
+    var tags = note_row[2].split(",");
+    var notes = note_row[3];
+    var photo_id = note_row[5];
+
+    // add tags
+    var tag_chips = "";
+    tags.forEach(tag => {
+        tag_chips += `
+        <span class="mdl-chip">
+            <span class="mdl-chip__text">${tag}</span>
+        </span>
+        `;
+    });
+
+    if (photo_id && photo_id.length > 0) {
         var card_html = `
         <div class="note-card photo-note-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-            <div class="mdl-card__title mdl-card--expand">
-                <img class="note-img" src="https://drive.google.com/uc?export=view&id=${note_row[4]}">
+            <div class="mdl-card__title">
+                <div class="mdl-card__title-text">${plant_id}</div>
+                <div class="mdl-card__subtitle-text note-subtitle">${timestamp}</div>
+            </div>
+            <div class="mdl-card__menu">
+                <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+                <i class="material-icons">share</i>
+                </button>
+            </div>
+            <div class="mdl-card__media">
+                <img class="note-img" src="https://drive.google.com/uc?export=view&id=${photo_id}">
             </div>
             <div class="mdl-card__supporting-text">
-                ${note_row[2]}
+                ${notes}
             </div>
-            <div class="mdl-card__actions mdl-card--border">
-                <b>${note_row[1]}</b> <br> ${note_row[0]}
+            <div class="mdl-card__actions mdl-card--border note-tags">
+                ${tag_chips}
             </div>
         </div>`;
 
     } else {
         var card_html = `
         <div class="note-card text-note-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
-            <div class="mdl-card__supporting-text">
-                ${note_row[2]}
+            <div class="mdl-card__title">
+                <div class="mdl-card__title-text">${plant_id}</div>
+                <div class="mdl-card__subtitle-text note-subtitle">${timestamp}</div>
             </div>
-            <div class="mdl-card__actions mdl-card--border">
-                <b>${note_row[1]}</b> <br> ${note_row[0]}
+            <div class="mdl-card__supporting-text">
+                ${notes}
+            </div>
+            <div class="mdl-card__actions mdl-card--border note-tags">
+                ${tag_chips}
             </div>
         </div>
         `;
@@ -114,8 +145,9 @@ async function studySelectionHandler(e) {
 
     // Load Study
     // 1. fetch the spreadsheet data
-    // 2. load the images and their notes into cards and chips
-    // 3. scroll to the bottom (with each card)
+    // 2. Load the tags
+    // 3. load the images and their notes into cards and chips
+    // 4. scroll to the bottom (with each card)
     current_study_row = parseInt(study_row_input.value);
     var study_name = study_name_input.value;
 
@@ -130,23 +162,31 @@ async function studySelectionHandler(e) {
         // 1. fetch the notes
         var resp = await gapi.client.sheets.spreadsheets.values.get({
             spreadsheetId: study_sheet_id,
-            range: STUDY_NOTES_RANGE
+            range: STUDY_FULL_RANGE
         });
 
         var result = resp.result;
         var numRows = result.values ? result.values.length : 0;
-        if (numRows < 1) {
+        // 2. Load Tags
+        if (numRows > 1) {
+            // FIXME: Tags are in C2 (this should come from the CONFIG)
+            study_tags = result.values[1][2].split(",");
+        }
+
+        // Check if there are notes
+        if (numRows < 4) {
             // Nothing to do
             document.getElementById("study-notes-status").innerHTML = `No Notes for ${study_name}`;
             return;
         }
 
-        // 2. load images and create cards
+        // 3. load images and create cards
         note_cards.innerHTML = "";
-        for(const row of result.values) {
+        for(const row of result.values.slice(3)) {
             loadNote(row);
         }
 
+        // FIXME: 4. scroll to bottom
     } catch (e) {
         showError(e);
         return;
@@ -405,6 +445,31 @@ function initVirtualKeyboard() {
     }
 }
 
+
+function newNoteCancelHandler(e) {
+    e.preventDefault();
+    new_note_screen.hidden = true;
+}
+
+function newNoteSaveHandler(e) {
+    e.preventDefault();
+    // FIXME: implement
+}
+
+function newPhotoNote(img_url) {
+
+    // Wire up buttons
+    document.getElementById("new-note-cancel-btn").addEventListener("click", newNoteCancelHandler);
+    document.getElementById("new-note-save-btn").addEventListener("click", newNoteSaveHandler);
+    
+    // Set the image url
+    document.getElementById("new-note-img").src = img_url;
+
+    // Camera screen is already hidden. Show the new note screen
+    new_note_screen.hidden = false;
+    document.getElementById("camera-screen").hidden = true;
+}
+
 function notesAppInit() {
     // Error handler
     initErrorDialog();
@@ -422,7 +487,8 @@ function notesAppInit() {
     initStudySelector();
 
     // Init action buttons (camera and mic)
-    initCamera();
+    // FIXME: buttons should not be active until study is selected
+    initCamera(newPhotoNote);
     // initMic();
 
     // Load info if present
