@@ -103,6 +103,10 @@ table {
   width: 100%;
 }
 
+.min-pad {
+  padding: 8px;
+}
+
 tr.no-hover:hover {
   background-color: #FFFFFF !important;
 }

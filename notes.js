@@ -170,7 +170,10 @@ async function studySelectionHandler(e) {
         // 2. Load Tags
         if (numRows > 1) {
             // FIXME: Tags are in C2 (this should come from the CONFIG)
-            study_tags = result.values[1][2].split(",");
+            study_tags = "";
+            if (result.values[1].length > 2) {
+                study_tags = result.values[1][2].split(",");
+            }
         }
 
         // Check if there are notes
@@ -464,6 +467,11 @@ function newPhotoNote(img_url) {
     
     // Set the image url
     document.getElementById("new-note-img").src = img_url;
+
+    // Fill out plant info
+    var now = new Date();
+    document.getElementById("new-note-id").innerHTML = current_plant_id;
+    document.getElementById("new-note-time").innerHTML = now.toLocaleString("en-US");
 
     // Camera screen is already hidden. Show the new note screen
     new_note_screen.hidden = false;
