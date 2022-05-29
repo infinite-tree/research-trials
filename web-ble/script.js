@@ -5,6 +5,11 @@ const BLE_TX_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 var connected = false;
 var device = null;
 
+function handleError(msg, error) {
+    console.log(msg, error);
+    alert(msg + error.message);
+}
+
 function handleBLEDisconnected(event) {
     console.log("BLE disconnected");
     connected = false;
@@ -40,7 +45,7 @@ async function handleConnectButton(e) {
         device = await navigator.bluetooth.requestDevice({ filters: [{ services: [BLE_SERIAL_SERVICE_UUID]}]});
         console.log("Found: ", device);
     } catch (e) {
-        console.log("Error requesting device: ", e);
+        handleError("Error requesting device: ", e);
     }
 
     device.addEventListener('gattserverdisconnected', handleBLEDisconnected);
@@ -55,14 +60,14 @@ async function handleConnectButton(e) {
 
 
     } catch (e) {
-        console.log("Error connecting to device: ", e);
+        handleError("Error connecting to device: ", e);
     }
 
     try {
         var service = await server.getPrimaryService(BLE_SERIAL_SERVICE_UUID);
         console.log("Service: ", service);
     } catch (e) {
-        console.log("Error getting service: ", e);
+        handleError("Error getting service: ", e);
         device.gatt.disconnect();
     }
 
@@ -70,7 +75,7 @@ async function handleConnectButton(e) {
         var characteristic = await service.getCharacteristic(BLE_TX_UUID);
         console.log("got characteristic: ", characteristic);
     } catch (e) {
-        console.log("Error getting the characteristic: ", e);
+        handleError("Error getting the characteristic: ", e);
         device.gatt.disconnect();
     }
 
@@ -78,7 +83,7 @@ async function handleConnectButton(e) {
         await characteristic.startNotifications();
         characteristic.addEventListener('characteristicvaluechanged', handleNewData);
     } catch (e) {
-        console.log("Error setting up notifications: ", e);
+        handleError("Error setting up notifications: ", e);
         device.gatt.disconnect();
     }
 
@@ -103,7 +108,7 @@ function initBLESerial() {
     if ("bluetooth" in navigator) {
         document.getElementById('ble-connect').addEventListener('click', handleConnectButton);
     } else {
-        console.log("No BLE support");
+        handleError("No BLE support");
     }
 }
 
