@@ -19,7 +19,7 @@ function handleBLEDisconnected(event) {
 }
 
 function handleNewData(event) {
-    const value = event.target.value;
+    const value = event.target.value.trim();
     const decoder = new TextDecoder('utf-8');
     console.log(`Data: ${decoder.decode(value)}`);
     var msg = decoder.decode(value);
