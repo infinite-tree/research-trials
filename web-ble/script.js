@@ -46,6 +46,7 @@ async function handleConnectButton(e) {
         console.log("Found: ", device);
     } catch (e) {
         handleError("Error requesting device: ", e);
+        return;
     }
 
     device.addEventListener('gattserverdisconnected', handleBLEDisconnected);
@@ -69,6 +70,7 @@ async function handleConnectButton(e) {
     } catch (e) {
         handleError("Error getting service: ", e);
         device.gatt.disconnect();
+        return;
     }
 
     try {
@@ -108,7 +110,7 @@ function initBLESerial() {
     if ("bluetooth" in navigator) {
         document.getElementById('ble-connect').addEventListener('click', handleConnectButton);
     } else {
-        handleError("No BLE support");
+        handleError("No BLE support", {message: "no bluetooth"});
     }
 }
 
