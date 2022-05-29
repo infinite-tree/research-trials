@@ -19,15 +19,15 @@ function handleBLEDisconnected(event) {
 }
 
 function handleNewData(event) {
-    const value = event.target.value.trim();
+    const value = event.target.value;
     const decoder = new TextDecoder('utf-8');
     console.log(`Data: ${decoder.decode(value)}`);
     var msg = decoder.decode(value);
-    if (msg) {
-        document.getElementById('status').innerText = msg;
-    }
-    //document.getElementById('status').innerText = msg;
-
+    // if (msg) {
+    //     document.getElementById('status').innerText = msg;
+    // }
+    document.getElementById('status').innerText = msg;
+    alert(msg);
 }
 
 async function handleConnectButton(e) {
