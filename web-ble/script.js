@@ -23,10 +23,10 @@ function handleNewData(event) {
     const decoder = new TextDecoder('utf-8');
     console.log(`Data: ${decoder.decode(value)}`);
     var msg = decoder.decode(value);
-    // if (msg) {
-    //     document.getElementById('status').innerText = msg;
-    // }
-    document.getElementById('status').innerText = msg;
+    if (msg) {
+        document.getElementById('status').innerText = msg;
+    }
+    //document.getElementById('status').innerText = msg;
 
 }
 
