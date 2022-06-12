@@ -4,6 +4,7 @@ const BLE_RX_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 const BLE_TX_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 var connected = false;
 var device = null;
+var data_count = 0;
 
 function handleError(msg, error) {
     console.log(msg, error);
@@ -26,7 +27,8 @@ function handleNewData(event) {
     // if (msg) {
     //     document.getElementById('status').innerText = msg;
     // }
-    document.getElementById('status').innerText = msg;
+    data_count = data_count + 1;
+    document.getElementById('status').innerText = msg+  " " + data_count;
     alert(msg);
 }
 
