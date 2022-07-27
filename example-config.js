@@ -3,38 +3,43 @@
 //
 
 // google app info
-var CLIENT_ID = '';
-var API_KEY = '';
+const CLIENT_ID = '';
+const API_KEY = '';
 
 // Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
-var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
 // id of the inventory spreadsheet (from the URL in google docs)
-var INVENTORY_SPREADSHEET_ID = "";
+const INVENTORY_SPREADSHEET_ID = "";
 
 // Inventory sheet locations
-var INVENTORY_SHEET = "";
-var RFID_COLUMN = "";
+const INVENTORY_SHEET = "";
+const INVENTORY_RANGE = "";
+const RFID_COLUMN = "";
 
 // Search Sheet locations
-var SEARCH_SHEET = "";
-var RFID_SEARCH_FIELD_RANGE = "";
-var RFID_SEARCH_RESULT_RANGE = "";
+const SEARCH_SHEET = "";
+const RFID_SEARCH_FIELD_RANGE = "";
+const RFID_SEARCH_RESULT_RANGE = "";
 
-var ID_SEARCH_FIELD_RANGE = "";
-var ID_SEARCH_RESULT_RANGE = "";
+const ID_SEARCH_FIELD_RANGE = "";
+const ID_SEARCH_RESULT_RANGE = "";
 
-var ROW_SEARCH_FIELD_RANGE = "";
-var ROW_SEARCH_RESULT_RANGE = "";
+const ROW_SEARCH_FIELD_RANGE = "";
+const ROW_SEARCH_RESULT_RANGE = "";
 
-var CURRENT_ROW_TO_TAG = "";
-var CURRENT_ROW_TO_TAG_RANGE = "";
-var LAST_PLANT_ID = "";
+const CURRENT_ROW_TO_TAG = "";
+const CURRENT_ROW_TO_TAG_RANGE = "";
+const LAST_PLANT_ID = "";
+
+// Geo Sheet locations
+const ACTIVE_LAT_LONG = "";
+const NEAREST_GEO_PLANT = "";
 
 // HID RFID reader
-var VENDOR_ID = "";
-var PRODUCT_ID = "";
+const VENDOR_ID = "";
+const PRODUCT_ID = "";
