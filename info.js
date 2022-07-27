@@ -2,67 +2,109 @@
 // Info specific functions
 // See utils.js for more
 //
-var rfid_active = false;
 
-async function inputHandler(e) {
-    if (e.key === "Enter") {
-        // tag entered. 
-        e.preventDefault();
-        console.log("enter.", input.value);
+var current_distance;
 
-        var rfid = input.value;
-        input.value = "";
-        
-        if (rfid_active) {
-            // block multiple reads
-            return;
+function clearPlantInfo() {
+    plant_info.innerHTML = "";
+    plant_id_chip.innerHTML = "tap Looup";
+}
+
+
+function displayCurrentGeoPlant() {
+    var ft_distance = Math.round(parseFloat(current_distance) * 3.28084);
+
+    plant_info.innerHTML = `<br>${current_plant_values[0]}<br><br>Seed Id: ${current_plant_values[4]}<br><br><b>(${ft_distance}ft away)</b>`;
+
+    // Plant Id is the 2nd column
+    plant_id_chip.innerHTML = current_plant_values[1];
+    current_plant_id = current_plant_values[1];
+}
+
+
+async function lookupPlantByGeo(lat, long) {
+    // 2 step process:
+    //      1. put the coordinates into the geo location
+    //      2. read back the closest ID
+ 
+    try {
+        var resp = await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: INVENTORY_SPREADSHEET_ID,
+            range: ACTIVE_LAT_LONG,
+            valueInputOption: "USER_ENTERED",
+            resource: {values: [[lat], [long]]}
+        });
+
+        if (resp.result.updatedCells != 2) {
+            showError("Failed to send GPS location!");
+            return false;
         }
-        
-        rfid_active = true;
-        // debounce rfid input. Max rate is 1 request per sec
-        setTimeout(function(){ rfid_active = false; }, 1000);
-        await loadPlantByTag(rfid);
+    } catch (e) {
+        showError(e.toString());
+        return false;
+    }
+
+    try {
+        var resp = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: INVENTORY_SPREADSHEET_ID,
+            range: NEAREST_GEO_PLANT
+        });
+
+        var numRows = resp.result.values ? resp.result.values.length : 0;
+        if (numRows != 1) {
+            showError("Failed to lookup plant from location");
+            return false;
+        }
+
+        console.log(resp.result.values);
+
+        current_plant_id = resp.result.values[0][1];
+        current_distance = resp.result.values[0][13];
+        current_plant_values = resp.result.values[0];
+
+    } catch (e) {
+        showError(e.toString());
+        return false;
+    }
+
+    return true;
+}
+
+
+async function onLookupGeotagButton(e) {
+    e.preventDefault();
+
+    // update display while searching
+    plant_info.innerHTML = "Looking ...";
+    info_spinner.classList.add("is-active");
+    input.value = "";
+    input.parentElement.classList.remove("is-dirty");
+
+
+    if(await lookupPlantByGeo(active_lat, active_long)) {        
+        displayCurrentGeoPlant();
+
     } else {
-        if (rfid_active) {
-            // block additional data while searching
-            e.preventDefault();
-            return;
-        }
-        await arrowKeyHandler(e);
+        clearPlantInfo();
     }
+    info_spinner.classList.remove("is-active");
 }
 
-async function rfidInputHandler(rfid_tag) {
-    if (rfid_active) {
-        // block multiple reads
-        return;
-    }
-    rfid_active = true;
-    input.value = rfid_tag;
-    input.parentElement.classList.add("is-dirty");
-
-    console.log(`Searching for tag: ${rfid_tag}`);
-    await loadPlantByTag(rfid_tag);
-    rfid_active = false;
-}
 
 function infoAppInit() {
-    // set focus to the text field and get the keys from it
-    input.focus();
-    input.select();
-    input.addEventListener('keydown', inputHandler);
-
     // Error handler
     initErrorDialog();
+
+    document.getElementById('lookup-geotag-btn').addEventListener('click', onLookupGeotagButton);
 
     // Arrow buttons
     initArrowNav();
 
-    // enable HID based RFID reader if possible
-    initHidRFID(rfidInputHandler);
+    // enable GPS device 
+    initGPS(updateLatLongCallback);
 
     // Load info if present
-    loadByLocation();
+    loadByWindowLocation();
 }
 
 

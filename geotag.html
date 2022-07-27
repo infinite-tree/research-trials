@@ -5,13 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Research: Field Trial Tools">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-    <title>Research Trials: New Tag</title>
+    <title>Research Trials: New Geotag</title>
 
     <!-- Page styles -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.grey-orange.min.css" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css">
 
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
@@ -20,23 +20,35 @@
     <link rel="manifest" href="/favicon/site.webmanifest">
   </head>
   <body>
+    <!-- QR Overlay -->
+    <dialog id="qr-dialog" class="mdl-dialog">
+      <div class="mdl-dialog__content">
+        <div id="qr-reader"></div>
+      </div>
+      <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+        <!-- <button type="button" class="mdl-button">Agree</button> -->
+        <button id="exit-qr-scanner" type="button" class="mdl-button close">Cancel</button>
+      </div>
+    </dialog>
+
+
     <div class="mdl-layout mdl-js-layout">
       <div class="research-trials-header mdl-layout__header">
         <div class="mdl-layout__header-row">
           <span class="research-trials-title mdl-layout-title">
-            Research Trials: New Tag
+            Research Trials: GeoTag
           </span>
           <!-- Navigation -->
           <div class="research-trials-navigation-container">
             <nav class="research-trials-navigation mdl-navigation">
-              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="new_tag.html">New Tag</a>
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="geotag.html">New Geotag</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href="info.html">Plant Info</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href="notes.html">Notes</a>
             </nav>
           </div>
           <span class="research-trials-mobile-title mdl-layout-title">
             <!-- Icon badge on icon -->
-            <div id="rfid-status" class="material-icons mdl-badge mdl-badge--overlap">nfc</div>
+            <div id="gps-status" class="material-icons mdl-badge mdl-badge--overlap">public_off</div>
           </span>
         </div>
       </div>
@@ -46,11 +58,11 @@
             Research Trials
         </span>
         <nav class="mdl-navigation">
-            <a class="mdl-navigation__link" href="new_tag.html">New Tag</a>
+            <a class="mdl-navigation__link" href="geotag.html">New Geotag</a>
             <a class="mdl-navigation__link" href="info.html">Plant Info</a>
             <a class="mdl-navigation__link" href="notes.html">Notes</a>
             <div class="drawer-separator"></div>
-            <button type="button" class="mdl-button" id="reader-connect">Connect Reader</button>
+            <button type="button" class="mdl-button" id="connect-gps">Connect GPS</button>
             <div class="drawer-separator"></div>
             <!-- Google buttons -->
             <a id="googleLogoutButton" style="display: none;">Sign Out</a>
@@ -88,10 +100,21 @@
 
           <!-- Page Content -->
           <div class="mdl-grid">
+
+          <!-- QR Scanner -->
+          <div class="mdl-cell mdl-cell--4-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
+          <div class="mdl-cell mdl-cell--4-col mdl-cell--4-col-phone mdl-cell--4-col-tablet">
+            <button id="scan-qr-btn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+              Scan QR Code
+            </button>
+          </div>
+          <div class="mdl-cell mdl-cell--4-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
+
+          <!-- Geotag card -->
           <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
           <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
             <div class="mdl-card__title">
-              <h2 class="mdl-card__title-text">New Tag</h2>
+              <h2 class="mdl-card__title-text">New Geotag</h2>
             </div>
             <div class="mdl-card__supporting-text">
                 <span class="mdl-chip">
@@ -101,34 +124,44 @@
                 <span id="plant-info-span"><div id="info-spinner" class="mdl-spinner mdl-js-spinner"></div></span>
                 <br>
                 <br>
-                Scan tag to assign
+                Save to assign current position
                 <form action="#">
                     <div class="mdl-textfield mdl-js-textfield">
-                      <input class="mdl-textfield__input" type="text" id="rfid-input">
-                      <label class="mdl-textfield__label" for="rfid-input">RFID #...</label>
+                      <input class="mdl-textfield__input" type="text" id="latlong-input">
+                      <label class="mdl-textfield__label" for="latlong-input">Lat, Long ...</label>
                     </div>
                   </form>
             </div>
             <div class="mdl-card__actions mdl-card--border">
-                <button id="info-left" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
+                <!-- <button id="info-left" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
                     <i class="material-icons">chevron_left</i>
-                </button>
+                </button> -->
+
                 <div class="mdl-layout-spacer"></div>
-                <button id="info-right" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-                    <i class="material-icons">chevron_right</i>
+                <button id="save-geotag-btn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+                  Save
                 </button>
+
+                <div class="mdl-layout-spacer"></div>
+                <!-- <button id="info-right" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
+                    <i class="material-icons">chevron_right</i>
+                </button> -->
             </div>
           </div>
           <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
+
           </div>
         </div>
       </div>
     </div>
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- <script src="html5-qrcode.min.js"></script> -->
     <script src="/config.js"></script>
     <script src="/gauth.js"></script>
     <script src="/utils.js"></script>
-    <script src="/new_tag.js"></script>
+    <script src="/blegps.js"></script>
+    <script src="/geotag.js"></script>
   </body>
 </html>

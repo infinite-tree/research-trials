@@ -3,13 +3,15 @@
 // 
 var current_plant_id = "";
 var current_plant_values = [];
-var input = document.getElementById('rfid-input');
+var input = document.getElementById('latlong-input');
 var plant_id_chip = document.getElementById('plant-id-span');
 var plant_info = document.getElementById('plant-info-span');
 var info_spinner = document.getElementById('info-spinner');
 
 var rfid_callback = null;
 
+var active_lat = "";
+var active_long = "";
 
 // 
 // Error functions
@@ -65,8 +67,13 @@ function displayCurrentPlant() {
     }
 }
 
-
 async function loadPlant(search_value, search_type) {
+    if (await getPlant(search_value, search_type)) {
+        displayCurrentPlant();
+    }
+}
+
+async function getPlant(search_value, search_type) {
     // search for tag
     plant_id_chip.innerHTML = "Searching";
     info_spinner.classList.add("is-active");
@@ -75,7 +82,7 @@ async function loadPlant(search_value, search_type) {
     // 1. First write the rfid number to the search cell,
     // 2. Then read the row result
     // NOTE: this is becuase there is no search api and too many rows to download locally
-    // TODO: This should probably write the search formula as well to random cell to avaoid
+    // TODO: This should probably write the search formula as well to random cell to avoid
     // race conditions with other instances
     //
     var body = {
@@ -140,11 +147,12 @@ async function loadPlant(search_value, search_type) {
         console.log(result.values);
 
         current_plant_values = result.values[0];
-        displayCurrentPlant();
-
+        // displayCurrentPlant();
+        return true;
     } catch (e) {
         info_spinner.classList.remove("is-active");
         showError(e.toString());
+        return false;
     }
 }
 
@@ -325,7 +333,8 @@ function initArrowNav() {
     document.getElementById('info-right').addEventListener('click', loadNextPlant);
 }
 
-function loadByLocation() {
+
+function loadByWindowLocation() {
     var params = new URLSearchParams(window.location.search);
     if (params.has('tag')) {
         loadPlantByTag(params.get('tag'));
@@ -337,4 +346,17 @@ function loadByLocation() {
         return true;
     }
     return false;
+}
+
+
+// 
+// GPS helpers
+// 
+
+// To be called by GPS code
+function updateLatLongCallback(lat, long) {
+    active_lat = lat;
+    active_long = long;
+    input.value = lat.toFixed(11) + ", " + long.toFixed(11);
+    input.parentElement.classList.add("is-dirty");
 }

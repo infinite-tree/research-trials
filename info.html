@@ -29,14 +29,14 @@
           <!-- Navigation -->
           <div class="research-trials-navigation-container">
             <nav class="research-trials-navigation mdl-navigation">
-              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="new_tag.html">New Tag</a>
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="geotag.html">New Tag</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href="info.html">Plant Info</a>
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href="notes.html">Notes</a>
             </nav>
           </div>
           <span class="research-trials-mobile-title mdl-layout-title">
             <!-- Icon badge on icon -->
-            <div id="rfid-status" class="material-icons mdl-badge mdl-badge--overlap">nfc</div>
+            <div id="gps-status" class="material-icons mdl-badge mdl-badge--overlap">public_off</div>
           </span>
         </div>
       </div>
@@ -46,11 +46,11 @@
             Research Trials
         </span>
         <nav class="mdl-navigation">
-            <a class="mdl-navigation__link" href="new_tag.html">New Tag</a>
+            <a class="mdl-navigation__link" href="geotag.html">New Tag</a>
             <a class="mdl-navigation__link" href="info.html">Plant Info</a>
             <a class="mdl-navigation__link" href="notes.html">Notes</a>
             <div class="drawer-separator"></div>
-            <button type="button" class="mdl-button" id="reader-connect">Connect Reader</button>
+            <button type="button" class="mdl-button" id="connect-gps">Connect GPS</button>
             <div class="drawer-separator"></div>
             <!-- Google buttons -->
             <a id="googleLogoutButton" style="display: none;">Sign Out</a>
@@ -88,6 +88,8 @@
 
           <!-- Page Content -->
           <div class="mdl-grid">
+          
+          <!-- Plant Info Card -->
           <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
           <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
             <div class="mdl-card__title">
@@ -95,15 +97,15 @@
             </div>
             <div class="mdl-card__supporting-text">
                 <span class="mdl-chip">
-                    <span id="plant-id-span" class="mdl-chip__text">Scan to Looup</span>
+                    <span id="plant-id-span" class="mdl-chip__text">Connect GPS and tap Looup</span>
                 </span>
                 <br>
                 <span id="plant-info-span"><div id="info-spinner" class="mdl-spinner mdl-js-spinner"></div></span>
                 <br>
                 <form action="#">
                     <div class="mdl-textfield mdl-js-textfield">
-                      <input class="mdl-textfield__input" type="text" id="rfid-input">
-                      <label class="mdl-textfield__label" for="rfid-input">RFID #...</label>
+                      <input class="mdl-textfield__input" type="text" id="latlong-input">
+                      <label class="mdl-textfield__label" for="latlong-input">Lat, Long ...</label>
                     </div>
                   </form>
             </div>
@@ -111,6 +113,12 @@
                 <button id="info-left" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
                     <i class="material-icons">chevron_left</i>
                 </button>
+
+                <div class="mdl-layout-spacer"></div>
+                <button id="lookup-geotag-btn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+                  Lookup
+                </button>
+
                 <div class="mdl-layout-spacer"></div>
                 <button id="info-right" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
                     <i class="material-icons">chevron_right</i>
@@ -126,7 +134,7 @@
     <script src="/config.js"></script>
     <script src="/gauth.js"></script>
     <script src="/utils.js"></script>
-    <script src="/rfid.js"></script>
+    <script src="/blegps.js"></script>
     <script src="/info.js"></script>
   </body>
 </html>

@@ -500,7 +500,7 @@ function notesAppInit() {
     // initMic();
 
     // Load info if present
-    loadByLocation();
+    loadByWindowLocation();
 }
 
 // 
