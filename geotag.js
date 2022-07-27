@@ -16,8 +16,10 @@ async function onQRScanSuccess(decodedText, decodedResult) {
     await html5QrCode.stop();
     qr_dialog.close();
 
-    // FIXME: redirect to page with qr code location
-
+    // Redirect to page with qr code location
+    var params = decodedText.split('?')[1];
+    window.history.replaceState(null, null, "?"+params);
+    await loadGeoTagByWindowLocation();
 }
 
 async function onQRExitButton(e) {
@@ -174,21 +176,7 @@ async function onSaveGeotagButton(e) {
     }
 }
 
-
-function geotagAppInit() {
-    // Error handler
-    initErrorDialog();
-
-    // Arrow buttons
-    // initArrowNav();
-
-    // Init QR code scanner
-    // html5QrcodeScanner.render(onQRScanSuccess);
-    document.getElementById('scan-qr-btn').addEventListener('click', onQRScanButton);
-    document.getElementById('save-geotag-btn').addEventListener('click', onSaveGeotagButton);
-
-
-    // Load info if present
+async function loadGeoTagByWindowLocation() {
     var params = new URLSearchParams(window.location.search);
     if (params.has('id')) {
         var plant_id = params.get('id');
@@ -211,10 +199,27 @@ function geotagAppInit() {
         console.log("count = ", count);
         current_seed_population_id = plant_id
         current_population_count = count;
-        loadSeedPopulationById(plant_id);
+        current_population_assigned = 0;
+        await loadSeedPopulationById(plant_id);
     }
+}
+
+function geotagAppInit() {
+    // Error handler
+    initErrorDialog();
+
+    // Arrow buttons
+    // initArrowNav();
+
+    // Init QR code scanner
+    // html5QrcodeScanner.render(onQRScanSuccess);
+    document.getElementById('scan-qr-btn').addEventListener('click', onQRScanButton);
+    document.getElementById('save-geotag-btn').addEventListener('click', onSaveGeotagButton);
 
     initGPS(updateLatLongCallback);
+
+    // Load info if present
+    loadGeoTagByWindowLocation();
 }
 
 
