@@ -95,6 +95,8 @@ function infoAppInit() {
     // Error handler
     initErrorDialog();
 
+    initVersionInfo();
+
     document.getElementById('lookup-geotag-btn').addEventListener('click', onLookupGeotagButton);
 
     // Arrow buttons

@@ -13,6 +13,13 @@ var rfid_callback = null;
 var active_lat = "";
 var active_long = "";
 
+const VERSION = "0.1.01";
+
+function initVersionInfo() {
+    document.getElementById("version-span").innerHTML = VERSION;
+}
+
+
 // 
 // Error functions
 // 

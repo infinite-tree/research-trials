@@ -182,7 +182,7 @@ async function onSaveGeotagButton(e) {
         info_spinner.classList.remove("is-active");
         displayCurrentSeedPopulation();
         console.log("redisplay: ", last_assigned_plant_id)
-        plant_info.innerHTML = `Created ${last_assigned_plant_id}<br>` + plant_info.innerHTML;
+        // plant_info.innerHTML = `Created ${last_assigned_plant_id}<br>` + plant_info.innerHTML;
 
     } else {
         // Error was already shown. Reset the status
@@ -194,10 +194,10 @@ async function onSaveGeotagButton(e) {
 function updateLatLongCallback(lat, long) {
     updateLatLongInput(lat, long);
 
-    if (last_assigned_id != "") {
+    if (last_assigned_plant_id != "") {
         var ft_dist = calcDistance(last_assigned_lat, last_assigned_long, lat, long);
         console.log("distance: ", ft_dist);
-        document.getElementById("prev-dist-span").innerHTML = `<b>(${ft_dist} ft from prev)</b>`;
+        document.getElementById("prev-dist-span").innerHTML = `<b>(${ft_dist} ft from ${last_assigned_plant_id})</b>`;
     }
 }
 
@@ -232,6 +232,8 @@ async function loadGeoTagByWindowLocation() {
 function geotagAppInit() {
     // Error handler
     initErrorDialog();
+
+    initVersionInfo();
 
     // Arrow buttons
     // initArrowNav();
