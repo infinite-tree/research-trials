@@ -101,7 +101,7 @@ function infoAppInit() {
     initArrowNav();
 
     // enable GPS device 
-    initGPS(updateLatLongCallback);
+    initGPS(updateLatLongInput);
 
     // Load info if present
     loadByWindowLocation();

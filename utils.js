@@ -354,9 +354,9 @@ function loadByWindowLocation() {
 // 
 
 // To be called by GPS code
-function updateLatLongCallback(lat, long) {
+function updateLatLongInput(lat, long) {
     active_lat = lat;
     active_long = long;
-    input.value = lat.toFixed(11) + ", " + long.toFixed(11);
+    input.value = lat.toFixed(8) + ", " + long.toFixed(8);
     input.parentElement.classList.add("is-dirty");
 }

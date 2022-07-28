@@ -11,6 +11,7 @@ const BLE_TX_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 var gps_device = null;
 var gps_connected = false;
 var gps_data_callback = null;
+var gps_disconnect_callback = null;
 
 const gps_retry_limit = 3;
 var gps_retry_count = 0;
@@ -30,6 +31,10 @@ async function handleGPSDisconnected(e) {
         if (gps_retry_count <= gps_retry_limit) {
             gps_retry_count += 1;
             await connectGPS();
+        }
+    } else {
+        if (gps_disconnect_callback != null) {
+            gps_disconnect_callback();
         }
     }
 }
@@ -152,8 +157,9 @@ async function handleGPSConnectButton(e) {
 }
 
 
-function initGPS(new_pos_callback) {
+function initGPS(new_pos_callback, disconnect_callback = null) {
     gps_data_callback = new_pos_callback;
+    gps_disconnect_callback = disconnect_callback;
 
     if ("bluetooth" in navigator) {
         document.getElementById('connect-gps').addEventListener('click', handleGPSConnectButton);

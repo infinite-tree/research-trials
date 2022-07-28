@@ -8,6 +8,9 @@ var current_population_count;
 var current_population_assigned = 0;
 
 var last_assigned_plant_id = "";
+var last_assigned_lat;
+var last_assigned_long;
+
 
 async function onQRScanSuccess(decodedText, decodedResult) {
     // Handle on success condition with the decoded message.
@@ -72,7 +75,6 @@ function loadSeedPopulationById(plant_id) {
     return loadSeedPopulation(plant_id, "ID");
 }
 
-
 async function assignLocationToPlant(name, seed_id, lat, long) {
     // TODO: location, size, source, etc should be configurable somewhere
     // var name = name;
@@ -132,6 +134,9 @@ async function assignLocationToPlant(name, seed_id, lat, long) {
         }
 
         last_assigned_plant_id = new_id;
+        last_assigned_lat = lat;
+        last_assigned_long = long;
+
     } catch (e) {
         showError(e.toString());
         return false;
@@ -140,6 +145,16 @@ async function assignLocationToPlant(name, seed_id, lat, long) {
     return true;
 }
 
+function clearLatLong() {
+    input.value = "";
+    input.parentElement.classList.remove("is-dirty");
+}
+
+function calcDistance(prev_lat, prev_long, current_lat, current_long) {
+    // The same function that is in the distance column of the google sheet
+    var m_dist = 2 * 6371000 * Math.asin(Math.sqrt((Math.sin((prev_lat*(3.14159/180)-current_lat*(3.14159/180))/2))**2+Math.cos(prev_lat*(3.14159/180))*Math.cos(current_lat*(3.14159/180))*Math.sin(((prev_long*(3.14159/180)-current_long*(3.14159/180))/2))**2));
+    return Math.round(m_dist * 3.28084);
+}
 
 async function onSaveGeotagButton(e) {
     e.preventDefault();
@@ -158,9 +173,9 @@ async function onSaveGeotagButton(e) {
     }
 
     if (await assignLocationToPlant(current_seed_population_name, current_seed_population_id, active_lat, active_long)) {
-        // FIXME: show saved info, update the counter,
+        // Show saved info, update the counter,
         current_population_assigned += 1;
-        if (current_population_assigned >=  current_population_count) {
+        if (current_population_assigned >= current_population_count) {
             document.getElementById('save-geotag-btn').disabled = true;
         }
 
@@ -173,6 +188,16 @@ async function onSaveGeotagButton(e) {
         // Error was already shown. Reset the status
         info_spinner.classList.remove("is-active");
         plant_info.innerHTML = saved_info;
+    }
+}
+
+function updateLatLongCallback(lat, long) {
+    updateLatLongInput(lat, long);
+
+    if (last_assigned_id != "") {
+        var ft_dist = calcDistance(last_assigned_lat, last_assigned_long, lat, long);
+        console.log("distance: ", ft_dist);
+        document.getElementById("prev-dist-span").innerHTML = `<b>(${ft_dist} ft from prev)</b>`;
     }
 }
 
@@ -216,7 +241,7 @@ function geotagAppInit() {
     document.getElementById('scan-qr-btn').addEventListener('click', onQRScanButton);
     document.getElementById('save-geotag-btn').addEventListener('click', onSaveGeotagButton);
 
-    initGPS(updateLatLongCallback);
+    initGPS(updateLatLongCallback, clearLatLong);
 
     // Load info if present
     loadGeoTagByWindowLocation();
