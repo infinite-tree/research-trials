@@ -226,6 +226,8 @@ async function loadGeoTagByWindowLocation() {
         current_population_count = count;
         current_population_assigned = 0;
         await loadSeedPopulationById(plant_id);
+        document.getElementById('save-geotag-btn').disabled = false;
+
     }
 }
 
