@@ -135,8 +135,8 @@ async function getPlant(search_value, search_type) {
         info_spinner.classList.remove("is-active");
         input.value = "";
         input.parentElement.classList.remove("is-dirty");
-        input.focus();
-        input.select();
+        // input.focus();
+        // input.select();
 
         // Process result
         result = resp.result;
