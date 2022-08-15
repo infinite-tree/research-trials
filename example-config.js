@@ -19,12 +19,9 @@ const INVENTORY_SPREADSHEET_ID = "";
 // Inventory sheet locations
 const INVENTORY_SHEET = "";
 const INVENTORY_RANGE = "";
-const RFID_COLUMN = "";
 
 // Search Sheet locations
 const SEARCH_SHEET = "";
-const RFID_SEARCH_FIELD_RANGE = "";
-const RFID_SEARCH_RESULT_RANGE = "";
 
 const ID_SEARCH_FIELD_RANGE = "";
 const ID_SEARCH_RESULT_RANGE = "";
@@ -40,6 +37,12 @@ const LAST_PLANT_ID = "";
 const ACTIVE_LAT_LONG = "";
 const NEAREST_GEO_PLANT = "";
 
-// HID RFID reader
-const VENDOR_ID = "";
-const PRODUCT_ID = "";
+// Studies sheet locations
+const STUDIES_SPREADTSHEET_ID = "";         // Spreadhseet to track the studies generated
+const STUDIES_ACTIVE_RANGE = "";            // Range in the spreadsheet with the studies listed. See the template
+const STUDIES_PARENT_FOLDER_ID = "";        // The folder to keep studies in
+const STUDY_TEMPLATE_SPREADHSEET_ID = "";   // Template spreadsheet to copy when creating a new study (holds teh study data)
+const STUDY_FIRST_RANGE = "";               // Range within the above template that holds the first N rows of study data and header
+const STUDY_TAGS = "";                      // Range within the above template that holds the list of all tags for the study
+const STUDY_NOTE_COUNT = "";                // Range with the number of notes
+const STUDY_FIRST_NOTE_ROW = ;              // First row of notes in the study template

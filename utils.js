@@ -8,12 +8,15 @@ var plant_id_chip = document.getElementById('plant-id-span');
 var plant_info = document.getElementById('plant-info-span');
 var info_spinner = document.getElementById('info-spinner');
 
-var rfid_callback = null;
-
+// the current or active gps coordinates of the device
 var active_lat = "";
 var active_long = "";
 
-const VERSION = "0.1.01";
+// the gps coordinates of the current plant
+var current_plant_lat;
+var current_plant_long;
+
+const VERSION = "0.1.03";
 
 function initVersionInfo() {
     document.getElementById("version-span").innerHTML = VERSION;
@@ -55,8 +58,9 @@ function initErrorDialog() {
 function plantText(plant_row) {
     // Name is the second column, Size 8th, location 9th
     var desc ="<br>" + plant_row[1] + "<br><br><b>" + plant_row[7] + " in " + plant_row[8] + "</b>";
+    
     if (plant_row[5]) {
-        desc += "<br>(" + plant_row[5] + ")";
+        desc += "<br>(seed " + plant_row[5] + ")";
     }
     return desc;
 }
@@ -66,12 +70,11 @@ function displayCurrentPlant() {
     // Plant Id is the 3nd column
     plant_id_chip.innerHTML = current_plant_values[2];
     current_plant_id = current_plant_values[2];
+}
 
-    // rfid is the 11th column
-    if (current_plant_values.length > 10 && current_plant_values[10] !== "") {
-        // input.value = current_plant_values[10];
-        input.parentElement.classList.add("is-dirty");
-    }
+function clearPlantInfo() {
+    plant_info.innerHTML = "";
+    plant_id_chip.innerHTML = "tap Looup";
 }
 
 async function loadPlant(search_value, search_type) {
@@ -80,13 +83,79 @@ async function loadPlant(search_value, search_type) {
     }
 }
 
+// 
+// GPS Plant lookup and display functions
+// 
+async function lookupPlantByGeo(lat, long) {
+    // 2 step process:
+    //      1. put the coordinates into the geo location
+    //      2. read back the closest ID
+ 
+    try {
+        var resp = await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: INVENTORY_SPREADSHEET_ID,
+            range: ACTIVE_LAT_LONG,
+            valueInputOption: "USER_ENTERED",
+            resource: {values: [[lat], [long]]}
+        });
+
+        if (resp.result.updatedCells != 2) {
+            showError("Failed to send GPS location!");
+            return false;
+        }
+    } catch (e) {
+        showError(e.toString());
+        return false;
+    }
+
+    try {
+        var resp = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: INVENTORY_SPREADSHEET_ID,
+            range: NEAREST_GEO_PLANT
+        });
+
+        var numRows = resp.result.values ? resp.result.values.length : 0;
+        if (numRows != 1) {
+            showError("Failed to lookup plant from location");
+            return false;
+        }
+
+        console.log(resp.result.values);
+
+        current_plant_id = resp.result.values[0][1];
+        current_distance = resp.result.values[0][13];
+        current_plant_values = resp.result.values[0];
+        current_plant_lat = resp.result.values[0][11];
+        current_plant_long = resp.result.values[0][12];
+
+    } catch (e) {
+        showError(e.toString());
+        return false;
+    }
+
+    return true;
+}
+
+function displayCurrentGeoPlant() {
+    var ft_distance = Math.round(parseFloat(current_distance) * 3.28084);
+
+    plant_info.innerHTML = `<br>${current_plant_values[0]}<br><br>Seed Id: ${current_plant_values[4]} &nbsp;&nbsp;&nbsp;<span id="dist-span"><b>(${ft_distance}ft away)</b></span>`;
+
+    // Plant Id is the 2nd column
+    plant_id_chip.innerHTML = current_plant_values[1];
+    current_plant_id = current_plant_values[1];
+}
+
+// 
+// ID and ROW based plant lookup functions
+// 
 async function getPlant(search_value, search_type) {
     // search for tag
     plant_id_chip.innerHTML = "Searching";
     info_spinner.classList.add("is-active");
     plant_info.innerHTML = "";
 
-    // 1. First write the rfid number to the search cell,
+    // 1. First write the id or row into the search cell,
     // 2. Then read the row result
     // NOTE: this is becuase there is no search api and too many rows to download locally
     // TODO: This should probably write the search formula as well to random cell to avoid
@@ -101,9 +170,6 @@ async function getPlant(search_value, search_type) {
     if (search_type === "ID") {
         search_range = ID_SEARCH_FIELD_RANGE;
         result_range = ID_SEARCH_RESULT_RANGE;
-    } else if (search_type === "RFID") {
-        search_range = RFID_SEARCH_FIELD_RANGE;
-        result_range = RFID_SEARCH_RESULT_RANGE;
     } else if (search_type === "ROW") {
         search_range = ROW_SEARCH_FIELD_RANGE;
         result_range = ROW_SEARCH_RESULT_RANGE;
@@ -144,8 +210,6 @@ async function getPlant(search_value, search_type) {
         if (numRows != 1) {
             if (search_type  === "ID") {
                 showError("Unknown Tag");
-            } else if (search_type === "RFID") {
-                showError("Unknown plant id");
             } else {
                 showError("Unknown row");
             }
@@ -161,10 +225,6 @@ async function getPlant(search_value, search_type) {
         showError(e.toString());
         return false;
     }
-}
-
-function loadPlantByTag(rfid_tag) {
-    return loadPlant(rfid_tag, "RFID");
 }
 
 function loadPlantById(plant_id) {
@@ -206,94 +266,6 @@ async function loadNextUntaggedPlant() {
         showError(e.toString());
     }
 }
-
-// 
-// Plant manipulation functions
-// 
-async function assignTagToCurrentPlant(rfid_tag) {
-    // At this point the current plant's row and values should be stored in current_plant_values.
-    // As a reminder, queries are done via the search sheet, but data is written back to the inventory
-    // sheet using the row
-    info_spinner.classList.add("is-active");
-    plant_info.innerHTML = "Saving ...";
-
-    var row_number = current_plant_values[0];
-    var plant_row_range = INVENTORY_SHEET + "!" + RFID_COLUMN + row_number;
-    var next_row = (parseInt(row_number) + 1).toString();
-
-    try {
-        // make sure the rfid tag does not already exist
-        //  This prevents duplicate writes when moving quickly
-        var resp = await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId: INVENTORY_SPREADSHEET_ID,
-            range: RFID_SEARCH_FIELD_RANGE,
-            valueInputOption: "USER_ENTERED",
-            resource: {values: [[rfid_tag]]}
-        });
-
-        var result = resp.result;
-        if (result.updatedCells < 1) {
-            showError("Failed to validate tag");
-            return false;
-        }
-
-
-        resp = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: INVENTORY_SPREADSHEET_ID,
-            range: RFID_SEARCH_RESULT_RANGE
-        });
-        result = resp.result;
-        var numRows = result.values ? result.values.length : 0;
-        if (numRows == 1) {
-            var plant_id = result.values[0][2];
-            showError(`RFID Tag is already assigned to plant ${plant_id}`);
-            plant_info.innerHTML = "";
-            return false;
-        }
-
-    } catch (e) {
-        showError(e.toString());
-        return false;
-    }
-
-
-    // Write the tag
-    var body = {
-        data: [
-            {
-                range: plant_row_range,
-                values: [[rfid_tag]]
-            },
-            {
-                range: CURRENT_ROW_TO_TAG,
-                values: [[next_row]]
-            }
-        ],
-        valueInputOption: "USER_ENTERED"
-    }
-
-    try {
-        var resp = await gapi.client.sheets.spreadsheets.values.batchUpdate({
-            spreadsheetId: INVENTORY_SPREADSHEET_ID,
-            resource: body
-        });
-
-        if (resp.result.totalUpdatedCells < 2) {
-            showError("Failed to update plant");
-            return false;
-        }
-
-        // Success!
-        info_spinner.classList.remove("is-active");
-        plant_info.innerHTML = "Success";
-
-    } catch (e) {
-        showError(e.toString());
-        return false;
-    }
-    return true;
-}
-
 
 // 
 // UI helpers
@@ -366,4 +338,15 @@ function updateLatLongInput(lat, long) {
     active_long = long;
     input.value = lat.toFixed(8) + ", " + long.toFixed(8);
     input.parentElement.classList.add("is-dirty");
+}
+
+function clearLatLong() {
+    input.value = "";
+    input.parentElement.classList.remove("is-dirty");
+}
+
+function calcDistance(prev_lat, prev_long, current_lat, current_long) {
+    // The same function that is in the distance column of the google sheet
+    var m_dist = 2 * 6371000 * Math.asin(Math.sqrt((Math.sin((prev_lat*(3.14159/180)-current_lat*(3.14159/180))/2))**2+Math.cos(prev_lat*(3.14159/180))*Math.cos(current_lat*(3.14159/180))*Math.sin(((prev_long*(3.14159/180)-current_long*(3.14159/180))/2))**2));
+    return Math.round(m_dist * 3.28084);
 }

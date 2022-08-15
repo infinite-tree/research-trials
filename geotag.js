@@ -85,8 +85,7 @@ async function assignLocationToPlant(name, seed_id, lat, long) {
     var plant_size = "4'";
     var location = "field";
     var source = "";
-    // TODO: remove RFID support
-    var rfid = "";
+    var unused = "";
     var row = "";
     // var lat = lat;
     // var long = long;
@@ -125,7 +124,7 @@ async function assignLocationToPlant(name, seed_id, lat, long) {
             range: INVENTORY_RANGE,
             insertDataOption: "INSERT_ROWS",
             valueInputOption: "USER_ENTERED",
-            resource: {values: [[name, new_id, donor_id, receiver_id, seed_id, seed_qty, plant_size, location, source, rfid, row, lat, long, distance]]}
+            resource: {values: [[name, new_id, donor_id, receiver_id, seed_id, seed_qty, plant_size, location, source, unused, row, lat, long, distance]]}
         });
         // console.log(resp);
         if (resp.result.updates.updatedRows < 1) {
@@ -143,17 +142,6 @@ async function assignLocationToPlant(name, seed_id, lat, long) {
     }
 
     return true;
-}
-
-function clearLatLong() {
-    input.value = "";
-    input.parentElement.classList.remove("is-dirty");
-}
-
-function calcDistance(prev_lat, prev_long, current_lat, current_long) {
-    // The same function that is in the distance column of the google sheet
-    var m_dist = 2 * 6371000 * Math.asin(Math.sqrt((Math.sin((prev_lat*(3.14159/180)-current_lat*(3.14159/180))/2))**2+Math.cos(prev_lat*(3.14159/180))*Math.cos(current_lat*(3.14159/180))*Math.sin(((prev_long*(3.14159/180)-current_long*(3.14159/180))/2))**2));
-    return Math.round(m_dist * 3.28084);
 }
 
 async function onSaveGeotagButton(e) {
@@ -245,7 +233,7 @@ function geotagAppInit() {
     document.getElementById('scan-qr-btn').addEventListener('click', onQRScanButton);
     document.getElementById('save-geotag-btn').addEventListener('click', onSaveGeotagButton);
 
-    initGPS(updateLatLongCallback, clearLatLong);
+    initGPS(updateLatLongCallback, null, clearLatLong);
 
     // Load info if present
     loadGeoTagByWindowLocation();

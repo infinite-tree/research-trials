@@ -2,16 +2,17 @@
 // Notes specific functions
 // See utils.js for more
 //
-const Keyboard = window.SimpleKeyboard.default;
 const defaultKeyboardTheme = "hg-theme-default";
-var virtual_keyboard_div = document.getElementById("virtual-keyboard");
-var virtual_keyboard = null;
 
 var scanner_buffer = "";
 
 var current_study_row = -1;
-var study_rows = [];
+var available_study_rows = [];
+var study_data_rows = [];
+var study_tags_cell = "";
 var study_tags = [];
+var study_sheet_id;
+var study_folder_id;
 
 var study_name_input = document.getElementById("study-name");
 var study_row_input = document.getElementById("study-row");
@@ -21,10 +22,15 @@ var new_study_input = document.getElementById("new-study-input");
 var new_study_dialog = document.getElementById("new-study-dialog");
 var new_study_spinner = document.getElementById("new-study-spinner");
 
+var new_tag_dialog = document.getElementById("new-tag-dialog");
+
 var note_cards = document.getElementById("note-cards");
 var new_note_screen = document.getElementById("new-note-container");
 
 
+// 
+// Functions for Creating and displaying Studies
+// 
 function addStudiesToSelector(studies) {
     // Studies: [ [pos, name],...]
     for (let x=0; x < studies.length; x++) {
@@ -50,16 +56,17 @@ function htmlToElement(html) {
     return template.content.firstChild;
 }
 
-function loadNote(note_row) {
-    // TODO: add share link
+function clearNotes() {
+    note_cards.innerHTML = `
+        <div class="mdl-cell mdl-cell--12-col">
+            <br>
+            <span id="study-notes-status">No Notes yet...</span>
+        </div>
+        <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>`;
+};
 
-    // FIXME: images will be 2048 x 1152 or 1152 x 2048. Set card size appropriately
-    // [0] Timestamp, [1] plant_id, [2] tags, [3] note, [4] photo link [5] photo id
-    var timestamp = note_row[0];
-    var plant_id = note_row[1];
-    var tags = note_row[2].split(",");
-    var notes = note_row[3];
-    var photo_id = note_row[5];
+function loadNote(timestamp, plant_id, tags, notes, photo_id, prepend=false) {
+    // TODO: add share link
 
     // add tags
     var tag_chips = "";
@@ -86,7 +93,7 @@ function loadNote(note_row) {
             <div class="mdl-card__media">
                 <img class="note-img" src="https://drive.google.com/uc?export=view&id=${photo_id}">
             </div>
-            <div class="mdl-card__supporting-text">
+            <div class="mdl-card__supporting-text min-pad">
                 ${notes}
             </div>
             <div class="mdl-card__actions mdl-card--border note-tags">
@@ -110,38 +117,22 @@ function loadNote(note_row) {
         </div>
         `;
     }
-    note_cards.appendChild(htmlToElement(card_html));
+    
+    if (prepend) {
+        note_cards.prepend(htmlToElement(card_html));
+    } else {
+        note_cards.append(htmlToElement(card_html));
+    }
     
     // Scroll to the end
-    window.scrollTo(0,document.body.scrollHeight);
+    // window.scrollTo(0 ,document.body.scrollHeight);
 }
 
-
-async function inputHandler(e) {
-    if (virtual_keyboard_div !== null && virtual_keyboard_div.classList.contains("show-keyboard")) {
-        // virtual keyboard is on-screen do nothing
-    } else {
-        console.log("physical keyboard input", e.key);
-
-        if (e.key === "Enter") {
-            // tag entered. 
-            e.preventDefault();
-            var plant_tag = scanner_buffer;
-            scanner_buffer = "";
-            await loadPlantByTag(plant_tag);
-        } else if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) {
-            // Alphanumeric values go into the tag buffer
-            scanner_buffer += e.key;
-        } else {
-            await arrowKeyHandler(e);
-        }
-    }
-}
-
-async function studySelectionHandler(e) {
+async function loadStudyHandler(e) {
     console.log("Selected study");
     console.log(study_name_input.value);
     console.log(study_row_input.value);
+    clearNotes();
 
     // Load Study
     // 1. fetch the spreadsheet data
@@ -156,45 +147,72 @@ async function studySelectionHandler(e) {
     study_name_input.parentElement.classList.add("is-dirty");
 
     // Studies: [0] name, [1] sheet. [2] folder
-    var study_sheet_id = study_rows[current_study_row][1];
-
+    study_sheet_id = available_study_rows[current_study_row][1];
+    study_folder_id = available_study_rows[current_study_row][2];
+    
     try {
-        // 1. fetch the notes
+        // 1. fetch the first few notes and header data
         var resp = await gapi.client.sheets.spreadsheets.values.get({
             spreadsheetId: study_sheet_id,
-            range: STUDY_FULL_RANGE
+            range: STUDY_FIRST_RANGE
         });
 
         var result = resp.result;
         var numRows = result.values ? result.values.length : 0;
+        console.log("result.values: ", result.values);
+        study_data_rows = result.values;
+        
         // 2. Load Tags
         if (numRows > 1) {
-            // FIXME: Tags are in C2 (this should come from the CONFIG)
-            study_tags = "";
-            if (result.values[1].length > 2) {
-                study_tags = result.values[1][2].split(",");
+            // TODO: Tags are in D2 (this should come from the CONFIG)
+            study_tags = [];
+            if (result.values[1].length > 1) {
+                if (result.values[1][3]) {
+                    study_tags_cell = result.values[1][3];
+                    study_tags = result.values[1][3].split(",").map(item => item.trim());
+                    console.log("found tags: ", study_tags);
+                } else {
+                    study_tags_cell = "";
+                    study_tags = [];
+                }
             }
         }
 
         // Check if there are notes
-        if (numRows < 4) {
+        if (numRows <= 3) {
             // Nothing to do
             document.getElementById("study-notes-status").innerHTML = `No Notes for ${study_name}`;
-            return;
-        }
+        } else {
 
-        // 3. load images and create cards
-        note_cards.innerHTML = "";
-        for(const row of result.values.slice(3)) {
-            loadNote(row);
-        }
+            // 3. load images and create cards
+            note_cards.innerHTML = "";
+            for(const note_row of result.values.slice(3)) {
+                // FIXME: images will be 2048 x 1152 or 1152 x 2048. Set card size appropriately
+                // [0] Timestamp, [1] plant_id, [2] tags, [3] note, [4] photo link [5] photo id
+                var timestamp = note_row[0];
+                var plant_id = note_row[1];
+                var tags = note_row[2].split(",");
+                var notes = note_row[3];
+                var photo_id = note_row[5];
 
-        // FIXME: 4. scroll to bottom
+                // Don't wait on note loading
+                loadNote(timestamp, plant_id, tags, notes, photo_id);
+            }
+        }
     } catch (e) {
         showError(e);
         return;
     }
+
+    // Enable the note buttons if plant _id is already set
+    if (current_plant_id) {
+        console.log("enable btns");
+        document.getElementById("new-photo-btn").disabled = false;
+        document.getElementById("new-note-btn").disabled = false;
+    }
 }
+
+// TODO: implement note loading on scroll
 
 
 async function newStudyHandler(e) {
@@ -209,14 +227,14 @@ async function newStudyHandler(e) {
     if (res.length > 0) {
         study_row_input.value = res[0];
         study_name_input.value = res[1];
-        studySelectionHandler(null);
+        loadStudyHandler(null);
     }
 }
 
 
 async function initStudySelector() {
-    loadActiveStudies();
-    study_name_input.onchange = studySelectionHandler;
+    loadAvailableStudies();
+    study_name_input.onchange = loadStudyHandler;
 
     // Connect the new study button
     document.getElementById("new-study-btn").addEventListener('click', function() {
@@ -234,7 +252,7 @@ async function initStudySelector() {
 }
 
 
-async function loadActiveStudies() {
+async function loadAvailableStudies() {
     // get studies from spreadsheet
     try {
         // Look up the list of studies
@@ -251,9 +269,9 @@ async function loadActiveStudies() {
         }
 
         // [0] study name, [1] study spreadsheet, [3] study folder
-        study_rows = result.values;
+        available_study_rows = result.values;
         var studies = [];
-        for(const row of study_rows) {
+        for(const row of available_study_rows) {
             studies.push([studies.length, row[0]]);
         }
         addStudiesToSelector(studies);
@@ -281,7 +299,7 @@ async function createStudy(study_name) {
             "fields": "id"
         });
 
-        var study_folder_id = resp.result.id;
+        study_folder_id = resp.result.id;
         console.log("fodler id: ", study_folder_id);
     } catch (e) {
         showError(e.toString());
@@ -333,7 +351,7 @@ async function createStudy(study_name) {
             resource: {values: [[study_name, notes_sheet_id, study_folder_id]]}
         });
 
-        study_rows.push([study_name, notes_sheet_id, study_folder_id]);
+        available_study_rows.push([study_name, notes_sheet_id, study_folder_id]);
         addStudiesToSelector([[numRows, study_name]]);
 
     } catch (e) {
@@ -345,118 +363,266 @@ async function createStudy(study_name) {
     return [numRows, study_name];
 }
 
+
 // 
-// virtual Keyboard handling
+// Functions for creating and showing notes
 // 
-function handleShift() {
-    let currentLayout = virtual_keyboard.options.layoutName;
-    let shiftToggle = currentLayout === "default" ? "shift" : "default";
-
-    virtual_keyboard.setOptions({
-        layoutName: shiftToggle
-    });
-}
-
-function handleNumbers() {
-    let currentLayout = virtual_keyboard.options.layoutName;
-    let numbersToggle = currentLayout !== "numbers" ? "numbers" : "default";
-  
-    virtual_keyboard.setOptions({
-      layoutName: numbersToggle
-    });
-  }
-
-function virtualInputChangeHandler(input) {
-    console.log("Input changed", input);
-    new_study_input.value = input;
-    new_study_input.parentElement.classList.add("is-dirty");
-}
-
-function virtualKeyPressHandler(button) {
-    console.log("Button pressed", button);
-    if (button === "{shift}" || button === "{lock}") handleShift();
-    if (button === "{numbers}" || button === "{abc}") handleNumbers();
-    if (button === "{ent}") newStudyHandler(null);
-}
-
-function showVirtualKeyboard() {
-    virtual_keyboard.setOptions({
-        theme: `${defaultKeyboardTheme} show-keyboard`
-    });
-    virtual_keyboard_div.focus();
-}
-    
-function hideVirtualKeyboard() {
-    virtual_keyboard.setOptions({
-        theme: defaultKeyboardTheme
-    });
-}
-
-function initVirtualKeyboard() {
-    // if ( "hid" in navigator) {
-    if (1 != 1) {
-        // Desktops do't need the virtual keyboard
-    } else {
-        // mobile devices with bluetooth scanners need the keyboard
-
-        virtual_keyboard = new Keyboard({
-            onChange: input => virtualInputChangeHandler(input),
-            onKeyPress: button => virtualKeyPressHandler(button),
-            mergeDisplay: true,
-            layoutName: "default",
-            layout: {
-              default: [
-                "q w e r t y u i o p",
-                "a s d f g h j k l",
-                "{shift} z x c v b n m {backspace}",
-                "{numbers} {space} {ent}"
-              ],
-              shift: [
-                "Q W E R T Y U I O P",
-                "A S D F G H J K L",
-                "{shift} Z X C V B N M {backspace}",
-                "{numbers} {space} {ent}"
-              ],
-              numbers: ["1 2 3", "4 5 6", "7 8 9", "{abc} 0 {backspace}"]
-            },
-            display: {
-              "{numbers}": "123",
-              "{ent}": "return",
-              "{escape}": "esc ⎋",
-              "{tab}": "tab ⇥",
-              "{backspace}": "⌫",
-              "{capslock}": "caps lock ⇪",
-              "{shift}": "⇧",
-              "{controlleft}": "ctrl ⌃",
-              "{controlright}": "ctrl ⌃",
-              "{altleft}": "alt ⌥",
-              "{altright}": "alt ⌥",
-              "{metaleft}": "cmd ⌘",
-              "{metaright}": "cmd ⌘",
-              "{abc}": "ABC"
-            }
-        });
-
-        new_study_input.addEventListener("input", event => {
-            virtual_keyboard.setInput(event.target.value);
-        });
-
-        new_study_input.addEventListener("focus", (event) => {
-            console.log("input focus");
-            showVirtualKeyboard();
-          });
-    }
-}
-
-
 function newNoteCancelHandler(e) {
     e.preventDefault();
     new_note_screen.hidden = true;
+    document.getElementById("new-note-desc-input").value = "";
+}
+
+async function saveNewNote(plant_id, photo_src, tags, note) {
+    var img_id = "";
+    var img_link = "";
+    // 1. upload the img if it exists
+    if (photo_src != "") {
+        var today = new Date();
+        var today_date = `${today.getFullYear()}_${today.getMonth().toString().padStart(2, '0')}_${today.getDate().toString().padStart(2, '0')}`;
+        var img_name = `${plant_id}_${today_date}.png`;
+
+        // console.log("Study folder: ", study_folder_id);
+
+        try {
+            // TODO: revist files.create API. At the moment it does not appear to support multipart uploads
+            const boundary = '-------314159265358979323846';
+            const delimiter = "\r\n--" + boundary + "\r\n";
+            const close_delim = "\r\n--" + boundary + "--";
+
+            var fileContent = photo_src.split("base64,")[1];
+            var metadata = {
+                'name': img_name,
+                'parents': [study_folder_id],
+                'mimeType': 'text/plain\r\n\r\n'
+            };
+
+            var multipartRequestBody = delimiter +  'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter + 'Content-Type: ' + 'image/png\r\n' + 'Content-Transfer-Encoding: base64\r\n\r\n' + fileContent + close_delim;
+
+            var resp = await gapi.client.request({
+                'path': '/upload/drive/v3/files',
+                'method': 'POST',
+                'params': {
+                    'uploadType': 'multipart',
+                    'supportsAllDrives': 'true',
+                    'fields': 'id,webViewLink'
+                },
+                'headers': {
+                    'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+                },
+                'body': multipartRequestBody
+            });
+    
+            console.log(resp);
+            if (resp.result.id) {
+                img_id = resp.result.id;
+                img_link = resp.result.webViewLink;
+            } else {
+                showError("Failed to save image");
+                return [];
+            }
+
+        } catch (e) {
+            showError(e.toString());
+            return [];
+        }
+    }
+
+    // 2. batchUpdate the row in the notes table
+    // Timestamp,	Plant Id,	Tags,	Notes,	Photo link,	Photo Id
+    var now = new Date();
+    const note_timestamp = now.toLocaleString("en-US");
+    const tags_str = tags.join(", ");
+    const note_row_str = `${note_timestamp};${plant_id};${tags_str};${note};${img_link};${img_id}`;
+    const create_row_request = {
+        'insertRange': {
+            'range': {
+                'sheetId': 0,
+                'startRowIndex': STUDY_FIRST_NOTE_ROW-1,
+                'endRowIndex': STUDY_FIRST_NOTE_ROW
+            },
+            'shiftDimension': "ROWS"
+           }
+    };
+
+    const paste_data_request = {
+        'pasteData': {
+            'data': note_row_str,
+            'type': "PASTE_NORMAL",
+            'delimiter': ";",
+            'coordinate': {
+                'sheetId': 0,
+                'rowIndex': STUDY_FIRST_NOTE_ROW-1
+            }
+        }
+    };
+
+    try {
+        resp = await gapi.client.sheets.spreadsheets.batchUpdate({
+            'spreadsheetId': study_sheet_id
+        },{
+            requests: [create_row_request, paste_data_request]
+        });
+
+        console.log("batchupdate:");
+        console.log(resp);
+    } catch(e) {
+        showError(e.toString());
+        return [];
+    }
+
+    // return note_row;
+    return [note_timestamp, plant_id, tags, note, img_link, img_id];
+}
+
+async function saveAndShowNote(plant_id, photo_src, tags, note) {
+    // save the note
+    var note_data = await saveNewNote(plant_id, photo_src, tags, note);
+
+    // add the note to the screen
+    if(note_data.length > 1) {
+        // load the note on top (defaults to the bottom)
+        // [0] Timestamp, [1] plant_id, [2] tags (array), [3] note, [4] photo link [5] photo id
+        loadNote(note_data[0], note_data[1], note_data[2], note_data[3], note_data[5], true);
+    }
 }
 
 function newNoteSaveHandler(e) {
     e.preventDefault();
-    // FIXME: implement
+
+    var tag_elem = document.getElementById("new-note-tags");
+    var note_input = document.getElementById("new-note-desc-input");
+
+    // Get tags
+    var tags_selected = [];
+    var tag_buttons = document.getElementById("new-note-tags").children;
+    for(const tag_btn of tag_buttons) {
+        // skip the add button
+        if (tag_btn.firstElementChild.nodeName === "I") {
+            continue;
+        }
+        if (tag_btn.classList.contains("mdl-button--colored")) {
+            tags_selected.push(tag_btn.firstElementChild.innerHTML);
+        }
+    }
+    // console.log("Tags enabled: " + tags_selected);
+
+    var note = note_input.value;
+    var img_src = document.getElementById("new-note-img").src;
+
+    // clear input
+    tag_elem.innerHTML = "";
+    note_input.value = "";
+    note_input.classList.remove("is-dirty");
+
+    // save the new note & load the note card 
+    // don't wait for the save to complete
+    saveAndShowNote(current_plant_id, img_src, tags_selected, note);
+
+    new_note_screen.hidden = true;
+}
+
+function toggleTagButtonHandler(e) {
+    e.preventDefault();
+    // var tag = this.firstChild.innerHTML;
+    this.classList.toggle("mdl-button--colored");
+    // console.log(`toggelTag: ${this.firstChild.innerHTML}`);
+}
+
+async function addTagHandler(e) {
+    e.preventDefault();
+    
+    // Show the new tag dialog and connect the dialog buttons
+    new_tag_dialog.showModal();
+
+    // Connect the dialog's create button
+    var create_btn = document.getElementById("create-new-tag-btn");
+    create_btn.addEventListener('click', saveTagHandler);
+
+    // Catch the enter key
+    var new_tag_input = document.getElementById("new-tag-input");
+    new_tag_input.onkeydown = e => {
+        if (e.key=="Enter") {
+            e.preventDefault();
+            create_btn.click();
+            return false;
+         } else {
+            return true;
+         }
+    };
+
+    // connect the dialog's cancel button
+    document.getElementById("close-new-tag-btn").addEventListener('click', function() {
+        new_tag_dialog.close();
+    });
+}
+
+async function createTag(tag) {
+    // Add the new tag to the tag list in the study spreadsheet
+    var new_tags_cell;
+    if (study_tags_cell.length > 0) {
+        new_tags_cell = study_tags_cell + ", " + tag;
+    } else {
+        new_tags_cell = tag;
+    }
+    try {
+        var resp = await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: study_sheet_id,
+            range: STUDY_TAGS,
+            valueInputOption: "USER_ENTERED",
+            resource: {values: [[new_tags_cell]]}
+        });
+    } catch (e) {
+        showError(e.toString());
+        return false;
+    }
+    study_tags_cell = new_tags_cell;
+    study_tags.unshift(tag);
+    return true;
+}
+
+async function saveTagHandler(e) {
+    var new_tag_input = document.getElementById("new-tag-input");
+    var new_tag_spinner = document.getElementById("new-tag-spinner");
+    var tag = new_tag_input.value;
+    new_tag_spinner.classList.add("is-active");
+    
+    var res = await createTag(tag);
+    
+    new_tag_spinner.classList.remove("is-active");
+    new_tag_dialog.close();
+
+    // select the new tag
+    if (res) {
+        document.getElementById("new-note-tags").insertAdjacentHTML("afterbegin",
+            `<button type="button" class="mdl-chip tag-btn mdl-js-ripple-effect mdl-button--colored">
+                <span class="mdl-chip__text">${tag}</span>
+             </button>\n`);
+    }
+}
+
+function showAvailableTags() {
+    // Display Tags
+    var tags_html = "";
+    console.log("study tags: ", study_tags);
+    for(const tag of study_tags) {
+        // enabled: add mdl-button--colored to classlist
+        tags_html += `<button type="button" class="mdl-chip tag-btn mdl-js-ripple-effect">
+                        <span class="mdl-chip__text">${tag}</span>
+                      </button>\n`;
+    }
+    tags_html += `<button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" id="add-tag-btn">
+                    <i class="material-icons">add</i>
+                  </button>`;
+
+    document.getElementById("new-note-tags").innerHTML = tags_html;
+
+    // wire the tag buttons
+    var tag_btns = document.getElementsByClassName("tag-btn");
+    for (var tag_btn of tag_btns) {
+        tag_btn.addEventListener('click', toggleTagButtonHandler);
+    }
+    document.getElementById("add-tag-btn").addEventListener('click', addTagHandler);
 }
 
 function newPhotoNote(img_url) {
@@ -464,6 +630,16 @@ function newPhotoNote(img_url) {
     // Wire up buttons
     document.getElementById("new-note-cancel-btn").addEventListener("click", newNoteCancelHandler);
     document.getElementById("new-note-save-btn").addEventListener("click", newNoteSaveHandler);
+
+    // Handle enter key (do nothing)
+    var note_input = document.getElementById("new-note-desc-input");
+    note_input.onkeydown = e => {
+        if (e.key=="Enter") {
+            e.preventDefault();
+            return false;
+         }
+         return true;
+    };
     
     // Set the image url
     document.getElementById("new-note-img").src = img_url;
@@ -476,28 +652,100 @@ function newPhotoNote(img_url) {
     // Camera screen is already hidden. Show the new note screen
     new_note_screen.hidden = false;
     document.getElementById("camera-screen").hidden = true;
+
+    // Display tags
+    showAvailableTags();
 }
 
-function notesAppInit() {
+function onNewNoteButton(e) {
+    e.preventDefault();
+
+    // Wire up the buttons
+    document.getElementById("new-note-cancel-btn").addEventListener("click", newNoteCancelHandler);
+    document.getElementById("new-note-save-btn").addEventListener("click", newNoteSaveHandler);
+
+    // Fill out plant info
+    var now = new Date();
+    document.getElementById("new-note-id").innerHTML = current_plant_id;
+    document.getElementById("new-note-time").innerHTML = now.toLocaleString("en-US");
+
+    // populate tags
+    showAvailableTags();
+
+    // load the new note screen
+    document.getElementById("new-note-img-container").hidden = true;
+    new_note_screen.hidden = false;
+}
+
+// 
+// GPS handlers
+//
+async function onLookupGeotagButton(e) {
+    e.preventDefault();
+
+    // update display while searching
+    plant_info.innerHTML = "Looking ...";
+    info_spinner.classList.add("is-active");
+    input.value = "";
+    input.parentElement.classList.remove("is-dirty");
+
+
+    if(await lookupPlantByGeo(active_lat, active_long)) {        
+        displayCurrentGeoPlant();
+        if (current_study_row >= 0) {
+            // Enable the note buttons
+            console.log("enable btns");
+            document.getElementById("new-photo-btn").disabled = false;
+            document.getElementById("new-note-btn").disabled = false;
+        }
+    } else {
+        clearPlantInfo();
+    }
+    info_spinner.classList.remove("is-active");
+}
+
+function gpsConnected() {
+    plant_id_chip.innerHTML = "Tap Lookup";
+}
+
+function updateLatLongCallback(lat, long) {
+    updateLatLongInput(lat, long);
+
+    // display distance from plant
+    if (current_plant_id != "") {
+        var ft_dist = calcDistance(current_plant_lat, current_plant_long, lat, long);
+        console.log("distance: ", ft_dist);
+        document.getElementById("dist-span").innerHTML = `<b>(${ft_dist} ft away)</b>`;
+    }
+}
+
+
+// 
+// Entry Point
+//
+async function notesAppInit() {
+
     // Error handler
     initErrorDialog();
 
-    // Setup handler for "keyboard" (bluetooth scanner)
-    document.addEventListener('keydown', inputHandler);
+    initVersionInfo();
 
-    // Arrow buttons
-    initArrowNav();
-    
-    // Setup virtual keyboard
-    initVirtualKeyboard();
+    // Load the google drive API
+    await gapi.client.load('drive', 'v3');
 
     // Load studies
     initStudySelector();
 
-    // Init action buttons (camera and mic)
-    // FIXME: buttons should not be active until study is selected
+    // Init GPS
+    document.getElementById('lookup-geotag-btn').addEventListener('click', onLookupGeotagButton);
+    initGPS(updateLatLongCallback, gpsConnected, clearLatLong);
+
+    // Init Camera handling (new photo note)
     initCamera(newPhotoNote);
-    // initMic();
+
+    // Hookup new text note button
+    document.getElementById("new-note-btn").addEventListener('click', onNewNoteButton);
+
 
     // Load info if present
     loadByWindowLocation();
