@@ -13,8 +13,6 @@ var photo_handler_callback = null;
 // Camera functions
 //
 async function startCamera(width, height) {
-    // var cam_min = Math.min(CAMERA_HEIGHT, CAMERA_WIDTH);
-    // var cam_max = Math.max(CAMERA_HEIGHT, CAMERA_WIDTH);
     var camera_constraints = {
       audio: false,
       video: {
@@ -34,7 +32,6 @@ async function startCamera(width, height) {
         video.onplay = function() {
             // unhide the camera UI
             camera_screen.hidden = false;
-            // FIXME: set width and height to screen size
         };
     }
     catch (e) {
