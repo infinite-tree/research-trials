@@ -92,7 +92,7 @@ function loadNote(timestamp, plant_id, tags, notes, photo_id, prepend=false) {
                 </button>
             </div>
             <div class="mdl-card__media">
-                <img id="note-img" class="note-img" src="https://drive.google.com/uc?export=view&id=${photo_id}">
+                <img class="note-img" src="https://drive.google.com/uc?export=view&id=${photo_id}">
             </div>
             <div class="mdl-card__supporting-text min-pad">
                 ${notes}
@@ -188,11 +188,13 @@ async function loadStudyHandler(e) {
             // 3. load images and create cards
             note_cards.innerHTML = "";
             for(const note_row of result.values.slice(3)) {
-                // FIXME: images will be 2048 x 1152 or 1152 x 2048. Set card size appropriately
                 // [0] Timestamp, [1] plant_id, [2] tags, [3] note, [4] photo link [5] photo id
                 var timestamp = note_row[0];
                 var plant_id = note_row[1];
-                var tags = note_row[2].split(",");
+                var tags = [];
+                if (note_row[2].length > 0) {
+                    tags = note_row[2].split(",");
+                }
                 var notes = note_row[3];
                 var photo_id = note_row[5];
 
@@ -239,11 +241,21 @@ async function initStudySelector() {
 
     // Connect the new study button
     document.getElementById("new-study-btn").addEventListener('click', function() {
+        document.getElementById("new-study-input").value = "";
         new_study_dialog.showModal();
     });
 
     // Connect the dialog's create button
     document.getElementById("create-new-study-btn").addEventListener('click', newStudyHandler);
+    document.getElementById("new-study-input").onkeydown = e => {
+        if (e.key=="Enter") {
+            e.preventDefault();
+            document.getElementById("create-new-study-btn").click();
+            return false;
+         } else {
+            return true;
+         }
+    };
 
 
     // connect the dialog's cancel button
@@ -621,8 +633,8 @@ function showAvailableTags() {
                         <span class="mdl-chip__text">${tag}</span>
                       </button>\n`;
     }
-    tags_html += `<button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" id="add-tag-btn">
-                    <i class="material-icons">add</i>
+    tags_html += `<button type="button" class="mdl-chip mdl-js-ripple-effect mdl-button--colored" id="add-tag-btn">
+                    <span class="mdl-chip__text"><i class="v-center material-icons">add</i></span>
                   </button>`;
 
     document.getElementById("new-note-tags").innerHTML = tags_html;
