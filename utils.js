@@ -16,7 +16,7 @@ var active_long = "";
 var current_plant_lat;
 var current_plant_long;
 
-const VERSION = "0.1.03";
+const VERSION = "0.1.04";
 
 function initVersionInfo() {
     document.getElementById("version-span").innerHTML = VERSION;
