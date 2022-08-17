@@ -92,7 +92,7 @@ function loadNote(timestamp, plant_id, tags, notes, photo_id, prepend=false) {
                 </button>
             </div>
             <div class="mdl-card__media">
-                <img class="note-img" src="https://drive.google.com/uc?export=view&id=${photo_id}">
+                <img id="note-img" class="note-img" src="https://drive.google.com/uc?export=view&id=${photo_id}">
             </div>
             <div class="mdl-card__supporting-text min-pad">
                 ${notes}
