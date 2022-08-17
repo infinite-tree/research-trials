@@ -63,6 +63,7 @@ function clearNotes() {
             <span id="study-notes-status">No Notes yet...</span>
         </div>
         <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>`;
+
 };
 
 function loadNote(timestamp, plant_id, tags, notes, photo_id, prepend=false) {
@@ -159,7 +160,7 @@ async function loadStudyHandler(e) {
 
         var result = resp.result;
         var numRows = result.values ? result.values.length : 0;
-        console.log("result.values: ", result.values);
+        // console.log("result.values: ", result.values);
         study_data_rows = result.values;
         
         // 2. Load Tags
@@ -366,18 +367,24 @@ async function createStudy(study_name) {
 
 // 
 // Functions for creating and showing notes
-// 
-function newNoteCancelHandler(e) {
-    e.preventDefault();
+//
+function clearNewNote() {
+    // Tags clear automatically
+
     new_note_screen.hidden = true;
     document.getElementById("new-note-desc-input").value = "";
+    document.getElementById("new-note-img").src = "";
+}
+function newNoteCancelHandler(e) {
+    e.preventDefault();
+    clearNewNote();
 }
 
 async function saveNewNote(plant_id, photo_src, tags, note) {
     var img_id = "";
     var img_link = "";
     // 1. upload the img if it exists
-    if (photo_src != "") {
+    if (typeof photo_src === 'string' && photo_src.includes("base64")) {
         var today = new Date();
         var today_date = `${today.getFullYear()}_${today.getMonth().toString().padStart(2, '0')}_${today.getDate().toString().padStart(2, '0')}`;
         var img_name = `${plant_id}_${today_date}.png`;
@@ -413,7 +420,7 @@ async function saveNewNote(plant_id, photo_src, tags, note) {
                 'body': multipartRequestBody
             });
     
-            console.log(resp);
+            // console.log(resp);
             if (resp.result.id) {
                 img_id = resp.result.id;
                 img_link = resp.result.webViewLink;
@@ -464,8 +471,8 @@ async function saveNewNote(plant_id, photo_src, tags, note) {
             requests: [create_row_request, paste_data_request]
         });
 
-        console.log("batchupdate:");
-        console.log(resp);
+        // console.log("batchupdate:");
+        // console.log(resp);
     } catch(e) {
         showError(e.toString());
         return [];
@@ -477,7 +484,10 @@ async function saveNewNote(plant_id, photo_src, tags, note) {
 
 async function saveAndShowNote(plant_id, photo_src, tags, note) {
     // save the note
+    var save_note_spinner = document.getElementById("save-note-spinner");
+    save_note_spinner.hidden = false;
     var note_data = await saveNewNote(plant_id, photo_src, tags, note);
+    save_note_spinner.hidden = true;
 
     // add the note to the screen
     if(note_data.length > 1) {
@@ -626,6 +636,7 @@ function showAvailableTags() {
 }
 
 function newPhotoNote(img_url) {
+    clearNewNote();
 
     // Wire up buttons
     document.getElementById("new-note-cancel-btn").addEventListener("click", newNoteCancelHandler);
@@ -659,6 +670,7 @@ function newPhotoNote(img_url) {
 
 function onNewNoteButton(e) {
     e.preventDefault();
+    clearNewNote();
 
     // Wire up the buttons
     document.getElementById("new-note-cancel-btn").addEventListener("click", newNoteCancelHandler);

@@ -16,8 +16,8 @@ async function startCamera(width, height) {
     var camera_constraints = {
       audio: false,
       video: {
-        width: {ideal: width},
-        height: {ideal: height},
+        width: {min: CAMERA_WIDTH, ideal: CAMERA_WIDTH, max: CAMERA_HEIGHT},
+        height: {min: CAMERA_WIDTH, ideal: CAMERA_HEIGHT, max: CAMERA_HEIGHT},
         facingMode: "environment"
       }
     };
