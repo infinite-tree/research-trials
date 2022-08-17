@@ -13,11 +13,13 @@ var photo_handler_callback = null;
 // Camera functions
 //
 async function startCamera(width, height) {
+    var cam_min = Math.min(CAMERA_HEIGHT, CAMERA_WIDTH);
+    var cam_max = Math.max(CAMERA_HEIGHT, CAMERA_WIDTH);
     var camera_constraints = {
       audio: false,
       video: {
-        width: {min: CAMERA_WIDTH, ideal: CAMERA_WIDTH, max: CAMERA_HEIGHT},
-        height: {min: CAMERA_WIDTH, ideal: CAMERA_HEIGHT, max: CAMERA_HEIGHT},
+        width: {min: cam_min, ideal: CAMERA_WIDTH, max: cam_max},
+        height: {min: cam_min, ideal: CAMERA_HEIGHT, max: cam_max},
         facingMode: "environment"
       }
     };
