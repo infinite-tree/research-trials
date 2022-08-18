@@ -398,7 +398,8 @@ async function saveNewNote(plant_id, photo_src, tags, note) {
     // 1. upload the img if it exists
     if (typeof photo_src === 'string' && photo_src.includes("base64")) {
         var today = new Date();
-        var today_date = `${today.getFullYear()}_${today.getMonth().toString().padStart(2, '0')}_${today.getDate().toString().padStart(2, '0')}`;
+        var month = today.getMonth() + 1;
+        var today_date = `${today.getFullYear()}_${month.toString().padStart(2, '0')}_${today.getDate().toString().padStart(2, '0')}`;
         var img_name = `${plant_id}_${today_date}.png`;
 
         // console.log("Study folder: ", study_folder_id);

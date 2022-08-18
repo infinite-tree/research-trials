@@ -3,8 +3,8 @@ var video = document.getElementById("video-feed");
 var camera_stream = null;
 var camera_canvas = document.getElementById("camera-canvas");
 
-const CAMERA_WIDTH = 900;
-const CAMERA_HEIGHT = 1600;
+const CAMERA_WIDTH = 1600;
+const CAMERA_HEIGHT = 900;
 
 // User supplied
 var photo_handler_callback = null;
