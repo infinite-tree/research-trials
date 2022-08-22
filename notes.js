@@ -521,7 +521,7 @@ function newNoteSaveHandler(e) {
     var tag_buttons = document.getElementById("new-note-tags").children;
     for(const tag_btn of tag_buttons) {
         // skip the add button
-        if (tag_btn.firstElementChild.nodeName === "I") {
+        if (tag_btn.id === "add-tag-btn") {
             continue;
         }
         if (tag_btn.classList.contains("mdl-button--colored")) {
@@ -562,8 +562,9 @@ async function addTagHandler(e) {
     var create_btn = document.getElementById("create-new-tag-btn");
     create_btn.addEventListener('click', saveTagHandler);
 
-    // Catch the enter key
+    // Clear the input and Catch the enter key
     var new_tag_input = document.getElementById("new-tag-input");
+    new_tag_input.value = "";
     new_tag_input.onkeydown = e => {
         if (e.key=="Enter") {
             e.preventDefault();
