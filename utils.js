@@ -16,11 +16,22 @@ var active_long = "";
 var current_plant_lat;
 var current_plant_long;
 
-const VERSION = "0.1.12";
+const VERSION = "0.1.13";
 
 function initVersionInfo() {
     document.getElementById("version-span").innerHTML = VERSION;
 }
+
+
+var loadJS = function(url, callback) {
+    var scriptTag = document.createElement('script');
+    scriptTag.src = url;
+
+    scriptTag.onload = callback;
+    scriptTag.onreadystatechange = callback;
+
+    document.body.appendChild(scriptTag);
+};
 
 
 // 
@@ -151,9 +162,6 @@ function displayCurrentGeoPlant() {
 // 
 async function getPlant(search_value, search_type) {
     // search for tag
-    plant_id_chip.innerHTML = "Searching";
-    info_spinner.classList.add("is-active");
-    plant_info.innerHTML = "";
 
     // 1. First write the id or row into the search cell,
     // 2. Then read the row result
@@ -175,7 +183,7 @@ async function getPlant(search_value, search_type) {
         result_range = ROW_SEARCH_RESULT_RANGE;
     } else {
         showError(`Internal Error: unknown search type: ${search_type}`);
-        return;
+        return false;
     }
 
     try {
@@ -190,7 +198,7 @@ async function getPlant(search_value, search_type) {
         var result = resp.result;
         if (result.updatedCells < 1) {
             showError("Failed to start search");
-            return;
+            return false;
         }
 
         // 2.
@@ -213,25 +221,34 @@ async function getPlant(search_value, search_type) {
             } else {
                 showError("Unknown row");
             }
-            return;
+            return false;
         }
         console.log(result.values);
 
         current_plant_values = result.values[0];
-        // displayCurrentPlant();
+        // TODO: create a dictionary, and maintain a single place for the column mapping (like the spreadsheet header!)
+        current_plant_lat = parseFloat(current_plant_values[12]);
+        current_plant_long = parseFloat(current_plant_values[13]);
         return true;
     } catch (e) {
-        info_spinner.classList.remove("is-active");
         showError(e.toString());
         return false;
     }
 }
 
 function loadPlantById(plant_id) {
+    plant_id_chip.innerHTML = "Searching";
+    info_spinner.classList.add("is-active");
+    plant_info.innerHTML = "";
+
     return loadPlant(plant_id, "ID");
 }
 
 function loadPlantByRow(plant_row) {
+    plant_id_chip.innerHTML = "Searching";
+    info_spinner.classList.add("is-active");
+    plant_info.innerHTML = "";
+
     return loadPlant(plant_row, "ROW");
 }
 

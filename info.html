@@ -34,10 +34,7 @@
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href="notes.html">Notes</a>
             </nav>
           </div>
-          <span class="research-trials-mobile-title mdl-layout-title">
-            <!-- Icon badge on icon -->
-            <div id="gps-status" class="material-icons mdl-badge mdl-badge--overlap">public_off</div>
-          </span>
+          <span class="research-trials-mobile-title mdl-layout-title"></span>
         </div>
       </div>
     
@@ -60,9 +57,8 @@
       <div class="research-trials-content mdl-layout__content">
         <div class="mdl-typography--text-center">
           Research Trial Tools <span id="version-span"></span>
-
-          <div class="mdl-cell mdl-cell--3-col row-spacer"></div>
-          <div class="mdl-cell mdl-cell--3-col row-spacer"></div>
+          <!-- Icon badge on icon -->
+          &nbsp;&nbsp;&nbsp;<span class="v-center"><div id="gps-status" class="material-icons mdl-badge mdl-badge--overlap">public_off</div></span>
 
           <!-- Error Dialog -->
           <dialog id="error-dialog" class="mdl-dialog">
@@ -90,8 +86,8 @@
           <div class="mdl-grid">
           
           <!-- Plant Info Card -->
-          <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div>
-          <div class="info-card mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+          <!-- <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-phone mdl-cell--4-col-tablet"></div> -->
+          <div class="info-card mdl-cell mdl-cell--12-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
             <div class="mdl-card__title">
               <h2 class="mdl-card__title-text">Plant Info</h2>
             </div>
@@ -103,11 +99,10 @@
                 <span id="plant-info-span"><div id="info-spinner" class="mdl-spinner mdl-js-spinner"></div></span>
                 <br>
                 <form action="#">
-                    <div class="mdl-textfield mdl-js-textfield">
+                    <div class="mdl-textfield mdl-js-textfield" hidden>
                       <input class="mdl-textfield__input" type="text" id="latlong-input">
                       <label class="mdl-textfield__label" for="latlong-input">Lat, Long ...</label>
                     </div>
-                  </form>
             </div>
             <div class="mdl-card__actions mdl-card--border">
                 <button id="info-left" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
@@ -116,13 +111,35 @@
 
                 <div class="mdl-layout-spacer"></div>
                 <button id="lookup-geotag-btn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
-                  Lookup
+                  Lookup Nearest
                 </button>
 
                 <div class="mdl-layout-spacer"></div>
                 <button id="info-right" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
                     <i class="material-icons">chevron_right</i>
                 </button>
+            </div>
+          </div>
+          <!-- Plant Map -->
+          <div class="info-card mdl-cell mdl-cell--12-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+            <div class="mdl-card__title">
+              <h2 class="mdl-card__title-text">Map</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+              <div id="map"></div>
+            </div>
+            <div class="mdl-card__actions mdl-card--border">
+              <form action="#">
+                <div class="mdl-textfield mdl-js-textfield">
+                  <input class="mdl-textfield__input" type="text" id="plant-id-input">
+                  <label class="mdl-textfield__label" for="plant-id-input">Plant or Seed Id</label>
+                </div>
+              </form>
+              <div class="mdl-layout-spacer"></div>
+
+              <button id="lookup-plant-id-btn" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect" disabled>
+                  <i class="material-icons">near_me</i>
+              </button>
             </div>
           </div>
           </div>
