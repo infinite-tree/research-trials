@@ -194,6 +194,11 @@ video {
   align-content: flex-start;
 }
 
+#map {
+  width: 100%;
+  height: 350px;
+}
+
 .full-width {
   display: inline-block;
   white-space: nowrap;
