@@ -3,6 +3,7 @@
 // 
 var current_plant_id = "";
 var current_plant_values = [];
+var current_plant_seed_id = "";
 var input = document.getElementById('latlong-input');
 var plant_id_chip = document.getElementById('plant-id-span');
 var plant_info = document.getElementById('plant-info-span');
@@ -16,7 +17,7 @@ var active_long = "";
 var current_plant_lat;
 var current_plant_long;
 
-const VERSION = "0.1.13";
+const VERSION = "0.1.14";
 
 function initVersionInfo() {
     document.getElementById("version-span").innerHTML = VERSION;
@@ -181,6 +182,9 @@ async function getPlant(search_value, search_type) {
     } else if (search_type === "ROW") {
         search_range = ROW_SEARCH_FIELD_RANGE;
         result_range = ROW_SEARCH_RESULT_RANGE;
+    } else if (search_type === "SEED") {
+        search_range = SEED_SEARCH_FIELD_RANGE;
+        result_range = SEED_SEARCH_RESULT_RANGE;
     } else {
         showError(`Internal Error: unknown search type: ${search_type}`);
         return false;
@@ -227,6 +231,7 @@ async function getPlant(search_value, search_type) {
 
         current_plant_values = result.values[0];
         // TODO: create a dictionary, and maintain a single place for the column mapping (like the spreadsheet header!)
+        current_plant_id = current_plant_values[2];
         current_plant_lat = parseFloat(current_plant_values[12]);
         current_plant_long = parseFloat(current_plant_values[13]);
         return true;

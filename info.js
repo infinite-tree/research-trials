@@ -71,13 +71,21 @@ async function onPlantLookupButton(e) {
     e.preventDefault(); 
     if (!google_map) {
         initGoogleMaps();
-    } 
+    }
+    document.getElementById("plant-id-map-span").innerHTML = "...";
 
     // create marker for plant
     var plant_id = document.getElementById("plant-id-input").value;
+    var span_txt = `Plant ${plant_id}`;
+    
     await getPlant(plant_id, "ID");
-    console.log("Marker, lat: ");
-    console.log(current_plant_lat);
+    if (!current_plant_lat && !current_plant_seed_id) {
+        // The id was likely a seed population. Lookup the first plant
+        span_txt = `Seed ${current_plant_id}`;
+        await getPlant(current_plant_id, "SEED");
+    }
+    
+    document.getElementById("plant-id-map-span").innerHTML = span_txt;
 
     if (!plant_marker) {
         plant_marker = new google.maps.Marker({
@@ -138,7 +146,7 @@ function infoAppInit() {
     initArrowNav();
 
     // enable GPS device 
-    initGPS(updateLatLongInput, gpsConnected);
+    initGPS(onNewGPSCoordinates, gpsConnected);
 
     // Load info if present
     loadByWindowLocation();

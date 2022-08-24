@@ -28,6 +28,9 @@ const SEARCH_SHEET = "";
 const ID_SEARCH_FIELD_RANGE = "";
 const ID_SEARCH_RESULT_RANGE = "";
 
+const SEED_SEARCH_FIELD_RANGE = "";
+const SEED_SEARCH_RESULT_RANGE = "";
+
 const ROW_SEARCH_FIELD_RANGE = "";
 const ROW_SEARCH_RESULT_RANGE = "";
 

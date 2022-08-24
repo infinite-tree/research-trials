@@ -195,7 +195,7 @@ async function loadStudyHandler(e) {
                 if (note_row[2].length > 0) {
                     tags = note_row[2].split(",");
                 }
-                var notes = note_row[3];
+                var notes = note_row[3] ? note_row[3] : "";
                 var photo_id = note_row[5];
 
                 // Don't wait on note loading
