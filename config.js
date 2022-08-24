@@ -27,6 +27,9 @@ const SEARCH_SHEET = "search";
 const ID_SEARCH_FIELD_RANGE = "search!B3";
 const ID_SEARCH_RESULT_RANGE = "search!C3:P3";
 
+const SEED_SEARCH_FIELD_RANGE = "search!B7";
+const SEED_SEARCH_RESULT_RANGE = "search!C7:P7";
+
 const ROW_SEARCH_FIELD_RANGE = "search!C4";
 const ROW_SEARCH_RESULT_RANGE = "search!C4:P4";
 
