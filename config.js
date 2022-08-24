@@ -5,6 +5,7 @@
 // google app info
 const CLIENT_ID = '590185719929-4rofi5nat6fubu3gs6bkpdqvfe491pf4.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDmKqIZruCNWNeorSfS3ddx7ariyT1Zu0s';
+const MAPS_API_KEY = "AIzaSyDz3ToVx5wtV_EuPkTk3bdvfHAJTJ9Eaik";
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4", "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
@@ -24,13 +25,13 @@ const INVENTORY_RANGE = "inventory!A:M";
 const SEARCH_SHEET = "search";
 
 const ID_SEARCH_FIELD_RANGE = "search!B3";
-const ID_SEARCH_RESULT_RANGE = "search!C3:M3";
+const ID_SEARCH_RESULT_RANGE = "search!C3:P3";
 
 const ROW_SEARCH_FIELD_RANGE = "search!C4";
-const ROW_SEARCH_RESULT_RANGE = "search!C4:M4";
+const ROW_SEARCH_RESULT_RANGE = "search!C4:P4";
 
 const CURRENT_ROW_TO_TAG = "search!C5";
-const CURRENT_ROW_TO_TAG_RANGE = "search!C5:M5";
+const CURRENT_ROW_TO_TAG_RANGE = "search!C5:P5";
 const LAST_PLANT_ID = "search!B6";
 
 // Geo Sheet locations
